@@ -1,0 +1,14 @@
+GALAXIA DE AMOR - Cómo abrirla
+
+IMPORTANTE: no la abras haciendo doble clic en index.html. Las fotos en 3D
+no cargan desde un archivo local; necesita estar en internet (gratis):
+
+OPCIÓN FÁCIL (2 minutos, funciona en celular):
+1. Entra a https://app.netlify.com/drop
+2. Arrastra la carpeta completa "GalaxiaDeAmor" (con index.html, fotos y el mp3).
+3. Te da un enlace. Ábrelo en el celular de tu pareja y listo.
+
+Tips:
+- Pruébala tú antes, con sonido y con internet.
+- Para ver el efecto del día del aniversario antes de tiempo, agrega ?aniversario al final del enlace.
+- Mejor en Chrome o Safari actualizados, con el celular en vertical o en horizontal.

@@ -1,0 +1,2081 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Una Galaxia de Amor para Ti</title>
+  <meta name="theme-color" content="#03010a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%9A%3C/text%3E%3C/svg%3E">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #03010a;
+      font-family: 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: #fff;
+      touch-action: none;
+    }
+
+    /* Vignette suave para más profundidad */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 20;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(3,1,10,0.55) 100%);
+    }
+
+    #welcome {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at center, #0c2a1f 0%, #040d0a 55%, #020508 100%);
+      z-index: 1000;
+      transition: opacity 1s ease, visibility 1s;
+    }
+    #welcome.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .welcome-card {
+      background: linear-gradient(160deg, rgba(8,36,28,0.92), rgba(4,18,14,0.96));
+      border: 1.5px solid rgba(52,211,153,0.55);
+      border-radius: 32px;
+      padding: 44px 40px;
+      text-align: center;
+      max-width: 380px; width: 90%;
+      box-shadow:
+        0 0 60px rgba(16,185,129,0.35),
+        0 0 120px rgba(6,95,70,0.2),
+        inset 0 0 40px rgba(52,211,153,0.06);
+      animation: cardFloat 4s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
+    }
+    .welcome-card::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(circle, rgba(52,211,153,0.08) 0%, transparent 60%);
+      animation: shimmer 8s linear infinite;
+    }
+    @keyframes cardFloat {
+      0%,100% { transform: translateY(0); box-shadow: 0 0 60px rgba(16,185,129,0.35), 0 0 120px rgba(6,95,70,0.2); }
+      50% { transform: translateY(-6px); box-shadow: 0 0 80px rgba(52,211,153,0.5), 0 0 140px rgba(16,185,129,0.25); }
+    }
+    @keyframes shimmer {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .welcome-card h1 {
+      font-size: 28px; font-weight: 700; line-height: 1.3;
+      background: linear-gradient(105deg, #6ee7b7, #34d399, #a7f3d0, #34d399);
+      background-size: 200% auto;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+      animation: textShine 5s linear infinite;
+      position: relative;
+    }
+    @keyframes textShine {
+      to { background-position: 200% center; }
+    }
+
+    .welcome-emojis {
+      font-size: 34px;
+      margin: 14px 0 16px;
+      letter-spacing: 12px;
+      filter: drop-shadow(0 0 12px rgba(255,105,180,0.5));
+    }
+    .welcome-sub {
+      font-size: 14px;
+      color: #a7f3d0;
+      letter-spacing: 2px;
+      margin-bottom: 30px;
+      font-weight: 500;
+      opacity: 0.95;
+    }
+    #enterBtn {
+      background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
+      background-size: 200% auto;
+      border: none;
+      color: #042f1a;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 16px 34px;
+      border-radius: 50px;
+      cursor: pointer;
+      letter-spacing: 0.6px;
+      box-shadow: 0 0 30px rgba(16,185,129,0.55);
+      transition: transform 0.25s, box-shadow 0.25s;
+      position: relative;
+      animation: btnGlow 3s ease-in-out infinite;
+    }
+    @keyframes btnGlow {
+      0%,100% { background-position: 0% center; box-shadow: 0 0 30px rgba(16,185,129,0.55); }
+      50% { background-position: 100% center; box-shadow: 0 0 45px rgba(52,211,153,0.75); }
+    }
+    #enterBtn:hover { transform: scale(1.06); box-shadow: 0 0 50px rgba(52,211,153,0.9); }
+    #enterBtn:active { transform: scale(0.97); }
+
+    #canvas-container { position: fixed; inset: 0; z-index: 1; }
+    canvas { display: block; width: 100%; height: 100%; }
+
+    /* Modal más elegante */
+    #modal {
+      position: fixed; inset: 0;
+      background: rgba(2,4,8,0.82);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 500; opacity: 0; visibility: hidden;
+      transition: all 0.4s ease;
+      backdrop-filter: blur(12px);
+    }
+    #modal.show { opacity: 1; visibility: visible; }
+    .modal-content {
+      background: linear-gradient(165deg, rgba(10,40,32,0.95), rgba(4,18,14,0.98));
+      border: 1.5px solid rgba(52,211,153,0.5);
+      border-radius: 28px;
+      padding: 28px 26px;
+      max-width: 360px; width: 90%;
+      text-align: center;
+      box-shadow:
+        0 0 60px rgba(16,185,129,0.4),
+        0 0 100px rgba(255,255,255,0.12);
+      transform: scale(0.88) translateY(12px);
+      transition: transform 0.4s cubic-bezier(0.34,1.4,0.64,1);
+      position: relative;
+    }
+    #modal.show .modal-content { transform: scale(1) translateY(0); }
+    .modal-img {
+      width: 100%;
+      max-height: 240px;
+      object-fit: cover;
+      border-radius: 18px;
+      margin-bottom: 20px;
+      border: 1.5px solid rgba(52,211,153,0.45);
+      box-shadow: 0 0 28px rgba(16,185,129,0.35);
+    }
+    .modal-msg {
+      font-size: 16.5px;
+      line-height: 1.6;
+      color: #ecfdf5;
+      margin-bottom: 22px;
+      font-weight: 400;
+      text-shadow: 0 0 20px rgba(167,243,208,0.3);
+    }
+    .modal-close {
+      background: linear-gradient(90deg, #10b981, #34d399);
+      border: none;
+      color: #042f1a;
+      padding: 11px 30px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 0 18px rgba(16,185,129,0.4);
+    }
+    .modal-close:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 28px rgba(52,211,153,0.6);
+    }
+
+    .modal-body { width: 100%; }
+
+    /* Modal optimizado para horizontal */
+    @media (orientation: landscape) and (max-height: 520px) {
+      .modal-content {
+        max-width: 560px;
+        width: 90%;
+        padding: 14px 18px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+        text-align: left;
+      }
+      .modal-img {
+        width: 150px;
+        min-width: 150px;
+        max-height: 130px;
+        margin-bottom: 0;
+        border-radius: 14px;
+      }
+      .modal-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+      }
+      .modal-msg {
+        font-size: 14.5px;
+        margin-bottom: 10px;
+        line-height: 1.45;
+      }
+      .modal-close {
+        padding: 8px 20px;
+        font-size: 13px;
+        align-self: flex-start;
+      }
+    }
+
+    #hint {
+      position: fixed;
+      bottom: 26px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(12,6,20,0.75);
+      border: 1px solid rgba(255,105,180,0.35);
+      color: #d1fae5;
+      padding: 11px 22px;
+      border-radius: 40px;
+      font-size: 13px;
+      z-index: 30;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 1.2s;
+      white-space: nowrap;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 24px rgba(255,105,180,0.15);
+    }
+    #hint.show { opacity: 1; }
+
+    /* Contador más delicado */
+    #counter {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(8,20,16,0.7);
+      border: 1px solid rgba(52,211,153,0.35);
+      color: #a7f3d0;
+      padding: 9px 20px;
+      border-radius: 40px;
+      font-size: 13.5px;
+      z-index: 40;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      opacity: 0;
+      transition: opacity 1.2s;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 0 24px rgba(16,185,129,0.2);
+      letter-spacing: 0.3px;
+    }
+    #counter.show { opacity: 1; }
+    #counter span {
+      color: #ecfdf5;
+      font-weight: 600;
+      text-shadow: 0 0 12px rgba(167,243,208,0.4);
+    }
+
+    /* Botón pantalla completa */
+    #fsBtn {
+      position: fixed;
+      bottom: 22px;
+      right: 18px;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(16,185,129,0.18);
+      border: 1px solid rgba(52,211,153,0.45);
+      color: #a7f3d0;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.6s, background 0.25s, transform 0.2s;
+      backdrop-filter: blur(8px);
+    }
+    #fsBtn.show { opacity: 1; }
+    #fsBtn:hover {
+      background: rgba(16,185,129,0.4);
+      transform: scale(1.08);
+    }
+
+    .modal-content{display:flex;flex-direction:column;max-height:90vh;overflow:hidden}
+    .modal-img{max-height:150px;flex:0 0 auto}
+    .modal-body{display:flex;flex-direction:column;min-height:0;flex:1 1 auto}
+    .modal-msg{font-family:'Lora',Georgia,serif;font-size:15.5px;line-height:1.7;text-align:left;white-space:pre-line;
+      overflow-y:auto;min-height:0;flex:1 1 auto;padding-right:8px;margin-bottom:14px;scrollbar-width:thin;scrollbar-color:rgba(52,211,153,.5) transparent}
+    .modal-title{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:22px;font-weight:600;text-align:center;line-height:1.25;margin-bottom:12px;color:#fff;text-shadow:0 0 18px rgba(52,211,153,.6)}
+    .modal-close{align-self:center;flex:0 0 auto}
+    .welcome-card h1{font-family:'Playfair Display',Georgia,serif;font-style:italic}
+    #counter{font-family:'Nunito',sans-serif}
+    @media (orientation: landscape) and (max-height: 520px) {
+      .modal-content{flex-direction:row;align-items:stretch;max-width:760px;width:92%;max-height:92vh;padding:14px 18px}
+      .modal-img{width:150px;min-width:150px;max-height:150px;align-self:center}
+      .modal-body{max-height:calc(92vh - 28px)}
+      .modal-msg{font-size:14.5px;line-height:1.6}
+      .modal-title{font-size:19px;text-align:left}
+      .modal-close{align-self:flex-start}
+    }
+    .welcome-emojis{display:flex;align-items:flex-end;justify-content:center;gap:14px;letter-spacing:0;filter:drop-shadow(0 0 12px rgba(52,211,153,.55))}
+    .welcome-emojis .lg{height:54px;width:auto}
+    .welcome-emojis .lg:nth-child(2){height:66px}
+    .lg.mini{height:1.15em;width:1.15em;vertical-align:-.22em}
+    #fsBtn{display:flex;align-items:center;justify:center}
+
+    /* ===== Mejoras finales ===== */
+    #fsBtn{justify-content:center}
+    #hint{border-color:rgba(52,211,153,0.4);box-shadow:0 0 24px rgba(16,185,129,0.18)}
+    @media (max-width:430px){#hint{white-space:normal;width:86%;text-align:center;line-height:1.5;bottom:84px}}
+    #fsBtn:not(.show){visibility:hidden}
+    #muteBtn{position:fixed;bottom:22px;right:72px;width:46px;height:46px;border-radius:50%;
+      background:rgba(16,185,129,0.18);border:1px solid rgba(52,211,153,0.45);color:#a7f3d0;cursor:pointer;z-index:40;
+      display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;
+      transition:opacity .6s,background .25s,transform .2s;backdrop-filter:blur(8px)}
+    #muteBtn.show{opacity:1;visibility:visible}
+    #muteBtn:hover{background:rgba(16,185,129,0.4);transform:scale(1.08)}
+    #muteBtn .off{display:none}
+    #muteBtn.muted .on{display:none}
+    #muteBtn.muted .off{display:block}
+    .modal-img{width:100%;height:auto;max-height:38vh;object-fit:contain;background:rgba(0,0,0,.28)}
+    @media (orientation: landscape) and (max-height: 520px){
+      .modal-img{width:170px;min-width:170px;height:auto;max-height:calc(92vh - 28px);align-self:center}
+    }
+    .modal-count{font-family:'Nunito',sans-serif;font-size:11.5px;letter-spacing:2px;text-transform:uppercase;
+      color:#6ee7b7;opacity:.85;text-align:center;margin-bottom:6px}
+    #enterBtn.loading{opacity:.75;pointer-events:none}
+    #loadErr{display:none;margin-top:16px;font-size:13px;line-height:1.5;color:#fecaca;position:relative}
+    #anniv{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      text-align:center;z-index:60;pointer-events:none;opacity:0;transition:opacity 1.6s ease;padding:24px}
+    #anniv.show{opacity:1}
+    #anniv .a1{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:700;
+      font-size:clamp(30px,8.5vw,64px);line-height:1.15;
+      background:linear-gradient(105deg,#a7f3d0,#ecfdf5,#6ee7b7,#ecfdf5);background-size:200% auto;
+      -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+      animation:textShine 5s linear infinite;filter:drop-shadow(0 0 22px rgba(52,211,153,.65))}
+    #anniv .a2{margin-top:14px;font-family:'Nunito',sans-serif;font-size:clamp(13px,3.6vw,18px);letter-spacing:3px;
+      color:#d1fae5;text-transform:uppercase;text-shadow:0 0 16px rgba(52,211,153,.6)}
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Nunito:wght@400;600;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="welcome">
+    <div class="welcome-card">
+      <h1>Una Galaxia de Amor<br>para Ti</h1>
+      <div class="welcome-emojis"><svg class="lg" viewBox="0 0 48 64" aria-hidden="true"><defs><linearGradient id="gga" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ecfdf5"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs><ellipse cx="16" cy="16" rx="6" ry="15" fill="url(#gga)" stroke="#fff" stroke-width="2"/><ellipse cx="32" cy="16" rx="6" ry="15" fill="url(#gga)" stroke="#fff" stroke-width="2"/><ellipse cx="16" cy="17" rx="2.4" ry="9" fill="#fff" fill-opacity=".7"/><ellipse cx="32" cy="17" rx="2.4" ry="9" fill="#fff" fill-opacity=".7"/><circle cx="24" cy="44" r="16" fill="url(#gga)" stroke="#fff" stroke-width="2"/><circle cx="18.5" cy="42" r="2" fill="#042f1a"/><circle cx="29.5" cy="42" r="2" fill="#042f1a"/><path d="M24 47l-2.6-2.4h5.2z" fill="#ff5d7a"/><path d="M24 47v2.2M24 49.2c-1.4 1.6-3 1.6-4 .6M24 49.2c1.4 1.6 3 1.6 4 .6" fill="none" stroke="#042f1a" stroke-width="1.2" stroke-linecap="round"/></svg><svg class="lg" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="ggb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ecfdf5"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs><ellipse cx="32" cy="34" rx="29" ry="10" transform="rotate(-22 32 34)" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><path d="M32 52C14 40 8 30 8 21c0-7 5-12 12-12 5 0 9 3 12 7 3-4 7-7 12-7 7 0 12 5 12 12 0 9-6 19-24 31z" transform="translate(0,-2)" fill="url(#ggb)" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M50 14l1.8 4.2 4.2 1.8-4.2 1.8L50 26l-1.8-4.2-4.2-1.8 4.2-1.8z" fill="#fff"/></svg><svg class="lg" viewBox="0 0 48 64" aria-hidden="true"><defs><linearGradient id="ggc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ecfdf5"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs><ellipse cx="16" cy="16" rx="6" ry="15" fill="url(#ggc)" stroke="#fff" stroke-width="2"/><ellipse cx="32" cy="16" rx="6" ry="15" fill="url(#ggc)" stroke="#fff" stroke-width="2"/><ellipse cx="16" cy="17" rx="2.4" ry="9" fill="#fff" fill-opacity=".7"/><ellipse cx="32" cy="17" rx="2.4" ry="9" fill="#fff" fill-opacity=".7"/><circle cx="24" cy="44" r="16" fill="url(#ggc)" stroke="#fff" stroke-width="2"/><circle cx="18.5" cy="42" r="2" fill="#042f1a"/><circle cx="29.5" cy="42" r="2" fill="#042f1a"/><path d="M24 47l-2.6-2.4h5.2z" fill="#ff5d7a"/><path d="M24 47v2.2M24 49.2c-1.4 1.6-3 1.6-4 .6M24 49.2c1.4 1.6 3 1.6 4 .6" fill="none" stroke="#042f1a" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+      <div class="welcome-sub">FELIZ ANIVERSARIO, MI SOLECITO HERMOSO</div>
+      <button id="enterBtn">ENTRAR A NUESTRO UNIVERSO <svg class="lg mini" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="ggd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ecfdf5"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs><ellipse cx="32" cy="34" rx="29" ry="10" transform="rotate(-22 32 34)" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><path d="M32 52C14 40 8 30 8 21c0-7 5-12 12-12 5 0 9 3 12 7 3-4 7-7 12-7 7 0 12 5 12 12 0 9-6 19-24 31z" transform="translate(0,-2)" fill="url(#ggd)" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M50 14l1.8 4.2 4.2 1.8-4.2 1.8L50 26l-1.8-4.2-4.2-1.8 4.2-1.8z" fill="#fff"/></svg></button>
+      <div id="loadErr"></div>
+    </div>
+  </div>
+  <div id="canvas-container"></div>
+  <div id="anniv"><div class="a1">¡Feliz aniversario,<br>mi solecito!</div><div class="a2" id="annivSub"></div></div>
+  <div id="hint">Arrastra para girar  •  Toca las fotos y los corazones <svg class="lg mini" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="gge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ecfdf5"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs><ellipse cx="32" cy="34" rx="29" ry="10" transform="rotate(-22 32 34)" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><path d="M32 52C14 40 8 30 8 21c0-7 5-12 12-12 5 0 9 3 12 7 3-4 7-7 12-7 7 0 12 5 12 12 0 9-6 19-24 31z" transform="translate(0,-2)" fill="url(#gge)" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M50 14l1.8 4.2 4.2 1.8-4.2 1.8L50 26l-1.8-4.2-4.2-1.8 4.2-1.8z" fill="#fff"/></svg> para ver mensajes de amor</div>
+  <div id="counter">Juntos desde el 25 de noviembre de 2025<br><span id="counterText">calculando...</span></div>
+  <audio id="bgMusic" loop preload="auto">
+    <source src="ma_meilleure_ennemie.mp3" type="audio/mpeg">
+  </audio>
+  <button id="muteBtn" title="Música" aria-label="Activar o silenciar la música"><svg class="on" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><svg class="off" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg></button>
+  <button id="fsBtn" title="Pantalla completa"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  <div id="modal">
+    <div class="modal-content">
+      <img id="modalImg" class="modal-img" src="" alt="Recuerdo">
+      <div class="modal-body">
+        <div id="modalMsg" class="modal-msg"></div>
+        <button class="modal-close" onclick="closeModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+window.__danceCv=document.createElement('canvas');
+
+(function(){
+'use strict';
+/* =====================================================================
+   CONFIG — canción "Ma Meilleure Ennemie" (≈117 BPM, intro suave ~10 s)
+   ===================================================================== */
+const SLOW=.5,BPM=117.3, BEAT0=0.38, INTRO_END=10.3, DUR=148.1;
+const AUDIO_SRC='ma_meilleure_ennemie.mp3';
+const ENV=[0.0, 0.09, 0.07, 0.18, 0.16, 0.14, 0.11, 0.11, 0.2, 0.18, 0.15, 0.13, 0.11, 0.09, 0.18, 0.1, 0.11, 0.08, 0.11, 0.18, 0.13, 0.1, 0.09, 0.1, 0.11, 0.19, 0.08, 0.12, 0.08, 0.15, 0.19, 0.12, 0.12, 0.12, 0.13, 0.1, 0.2, 0.1, 0.13, 0.06, 0.16, 0.38, 0.36, 0.32, 0.51, 0.53, 0.73, 0.58, 0.54, 0.75, 0.58, 0.48, 0.82, 0.47, 0.7, 0.65, 0.59, 0.77, 0.56, 0.56, 0.82, 0.6, 0.49, 0.81, 0.51, 0.75, 0.64, 0.55, 0.76, 0.53, 0.5, 0.81, 0.52, 0.54, 0.7, 0.47, 0.72, 0.51, 0.4, 0.79, 0.5, 0.51, 0.79, 0.54, 0.63, 0.6, 0.4, 0.71, 0.48, 0.45, 0.81, 0.45, 0.54, 0.79, 0.57, 0.71, 0.58, 0.55, 0.78, 0.57, 0.46, 0.79, 0.42, 0.63, 0.67, 0.51, 0.74, 0.61, 0.61, 0.81, 0.53, 0.47, 0.8, 0.5, 0.72, 0.61, 0.49, 0.7, 0.48, 0.51, 0.76, 0.43, 0.38, 0.8, 0.45, 0.75, 0.59, 0.48, 0.73, 0.46, 0.4, 0.79, 0.44, 0.62, 0.73, 0.59, 0.73, 0.64, 0.52, 0.79, 0.55, 0.49, 0.77, 0.5, 0.65, 0.71, 0.58, 0.75, 0.66, 0.44, 0.78, 0.44, 0.54, 0.8, 0.52, 0.61, 0.66, 0.54, 0.76, 0.6, 0.48, 0.46, 0.43, 0.38, 0.38, 0.44, 0.43, 0.42, 0.41, 0.47, 0.48, 0.41, 0.5, 0.63, 0.61, 0.7, 0.72, 0.97, 0.84, 0.75, 0.93, 0.84, 0.64, 1.0, 0.8, 0.93, 0.91, 0.79, 0.98, 0.91, 0.72, 1.0, 0.81, 0.8, 1.0, 0.9, 0.95, 0.97, 0.76, 0.97, 0.78, 0.71, 0.99, 0.74, 0.85, 0.85, 0.68, 0.91, 0.82, 0.68, 0.96, 0.69, 0.67, 0.99, 0.7, 0.85, 0.8, 0.7, 0.93, 0.78, 0.69, 1.0, 0.78, 0.87, 0.89, 0.8, 0.99, 0.79, 0.78, 0.95, 0.86, 0.68, 1.0, 0.66, 0.93, 0.86, 0.73, 0.93, 0.86, 0.73, 1.0, 0.85, 0.74, 1.0, 0.74, 0.96, 0.8, 0.65, 0.92, 0.77, 0.78, 1.0, 0.75, 0.69, 0.93, 0.65, 0.93, 0.79, 0.69, 1.0, 0.71, 0.69, 1.0, 0.7, 0.76, 0.68, 0.49, 0.67, 0.6, 0.5, 0.78, 0.48, 0.48, 0.75, 0.63, 0.71, 0.55, 0.52, 0.72, 0.57, 0.46, 0.74, 0.46, 0.63, 0.75, 0.57, 0.69, 0.57, 0.43, 0.72, 0.49, 0.36, 0.75, 0.53, 0.62, 0.66, 0.57, 0.76, 0.62, 0.42, 0.77, 0.65, 0.47, 0.8, 0.49, 0.68, 0.6, 0.46, 0.71, 0.6, 0.55, 0.8, 0.55, 0.54, 0.69, 0.43, 0.7, 0.51, 0.62, 0.78, 0.49, 0.5, 0.74, 0.5, 0.59, 0.59, 0.52, 0.77, 0.62, 0.51, 0.72, 0.54, 0.45, 0.74, 0.44, 0.64, 0.72, 0.61, 0.75, 0.61, 0.44, 0.74, 0.44, 0.52, 0.73, 0.52, 0.61, 0.62, 0.53, 0.74, 0.48, 0.41, 0.86, 0.65, 0.73, 0.7, 0.58, 0.72, 0.54, 0.6, 0.81, 0.61, 0.46, 0.89, 0.59, 0.8, 0.69, 0.62, 0.72, 0.54, 0.54, 0.79, 0.59, 0.53, 0.81, 0.55, 0.76, 0.58, 0.63, 0.78, 0.57, 0.5, 0.82, 0.53, 0.5, 0.62, 0.57, 0.6, 0.54, 0.53, 0.56, 0.71, 0.68, 0.76, 0.73, 0.9, 0.86, 0.76, 0.89, 0.79, 0.63, 0.93, 0.81, 0.8, 0.98, 0.79, 0.88, 0.94, 0.67, 0.9, 0.81, 0.65, 1.0, 0.87, 0.91, 0.95, 0.79, 0.86, 0.83, 0.7, 0.91, 0.71, 0.6, 0.94, 0.65, 0.83, 0.77, 0.66, 0.89, 0.66, 0.57, 0.95, 0.68, 0.64, 0.88, 0.7, 0.91, 0.83, 0.75, 0.98, 0.8, 0.77, 0.95, 0.72, 0.88, 0.78, 0.73, 0.89, 0.87, 0.74, 0.97, 0.71, 0.68, 0.97, 0.69, 0.84, 0.93, 0.69, 1.0, 0.89, 0.76, 0.95, 0.75, 0.78, 0.91, 0.59, 0.77, 0.75, 0.67, 0.92, 0.69, 0.5, 0.92, 0.53, 0.81, 0.78, 0.57, 0.85, 0.74, 0.55, 0.89, 0.65, 0.53, 0.91, 0.75, 0.9, 0.71, 0.73, 0.93, 0.85, 0.72, 0.91, 0.79, 0.64, 1.0, 0.67, 0.86, 0.84, 0.58, 0.9, 0.87, 0.77, 1.0, 0.76, 0.72, 0.81, 0.64, 0.9, 0.72, 0.64, 0.91, 0.65, 0.62, 0.95, 0.69, 0.81, 0.8, 0.56, 0.9, 0.72, 0.54, 0.93, 0.56, 0.68, 0.88, 0.58, 0.84, 0.71, 0.71, 0.91, 0.63, 0.73, 0.94, 0.69, 0.82, 0.77, 0.67, 0.86, 0.74, 0.64, 0.96, 0.67, 0.52, 1.0, 0.61, 0.93, 0.86, 0.68, 0.87, 0.72, 0.67, 0.99, 0.64, 0.56, 0.91, 0.62, 0.87, 0.74, 0.57, 0.88, 0.61, 0.55, 0.95, 0.59, 0.75, 0.82, 0.58, 0.84, 0.71, 0.53, 0.38, 0.08, 0.06, 0.04, 0.03, 0.02, 0.02, 0.01, 0.01, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]; // energía de la canción cada 0.25 s (0..1)
+
+const TAU=Math.PI*2;
+const clamp=(x,a,b)=>x<a?a:x>b?b:x;
+const ss=(a,b,x)=>{x=clamp((x-a)/(b-a),0,1);return x*x*(3-2*x);};
+const mix=(a,b,t)=>a+(b-a)*t;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const mul=(a,s)=>[a[0]*s,a[1]*s,a[2]*s];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const len=a=>Math.hypot(a[0],a[1],a[2]);
+const lerp3=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+
+const cv=window.__danceCv, ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1,S=2,Q=1;
+
+/* ---------- Sprites de brillo ---------- */
+function hex2rgb(h){h=h.replace('#','');return[parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)];}
+function mkSprite(hex){
+  const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');
+  const [r,gg,b]=hex2rgb(hex);const gr=g.createRadialGradient(32,32,0,32,32,32);
+  gr.addColorStop(0,'rgba(255,255,255,.4)');gr.addColorStop(.1,`rgba(${r},${gg},${b},.95)`);
+  gr.addColorStop(.45,`rgba(${r},${gg},${b},.28)`);gr.addColorStop(1,`rgba(${r},${gg},${b},0)`);
+  g.fillStyle=gr;g.fillRect(0,0,64,64);return c;
+}
+const PAL_M=['#ff2e4d','#ff3b5c','#e11d48','#ff5d7a','#ff9aa9'];
+const PAL_W=['#5eeaa0','#86efac','#4ade80','#6ee7b7','#bbf7d0'];
+const SPR_M=PAL_M.map(mkSprite), SPR_W=PAL_W.map(mkSprite);
+const SPR_PINK=mkSprite('#ff5d7a'), SPR_WHITE=mkSprite('#ffffff');
+const HEART=(function(){
+  const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');
+  g.translate(32,34);g.scale(1.05,1.05);g.beginPath();g.moveTo(0,16);
+  g.bezierCurveTo(-30,-4,-18,-26,0,-10);g.bezierCurveTo(18,-26,30,-4,0,16);
+  g.shadowColor='#ff2e4d';g.shadowBlur=10;g.fillStyle='#ff6b81';g.fill();
+  g.shadowBlur=0;g.fillStyle='rgba(255,255,255,.55)';g.beginPath();g.ellipse(-8,-8,4,2.4,-.6,0,TAU);g.fill();return c;
+})();
+
+/* ---------- Galaxia espiral (es el suelo de la pista) ---------- */
+function makeGalaxy(){
+  const N=1024,c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d');
+  let gr=g.createRadialGradient(N/2,N/2,0,N/2,N/2,N/2);
+  gr.addColorStop(0,'rgba(225,255,242,.55)');gr.addColorStop(.12,'rgba(167,243,208,.34)');
+  gr.addColorStop(.35,'rgba(52,211,153,.16)');gr.addColorStop(.7,'rgba(16,120,90,.07)');gr.addColorStop(1,'rgba(0,0,0,0)');
+  g.fillStyle=gr;g.fillRect(0,0,N,N);
+  const A=[255,179,217],B=[52,211,153];
+  for(let i=0;i<6200;i++){
+    const arm=i%3, r=Math.pow(Math.random(),.62)*470;
+    const th=arm*TAU/3 + r/470*4.4 + (Math.random()-.5)*(.5+.5*(1-r/470));
+    const sp=(Math.random()-.5)*r*.16;
+    const x=N/2+Math.cos(th)*r+Math.cos(th+1.57)*sp, y=N/2+Math.sin(th)*r+Math.sin(th+1.57)*sp;
+    const t=clamp(r/380,0,1), w=Math.random()<.14;
+    const col=w?[255,255,255]:[mix(A[0],B[0],t),mix(A[1],B[1],t),mix(A[2],B[2],t)];
+    g.fillStyle=`rgba(${col[0]|0},${col[1]|0},${col[2]|0},${rnd(.25,.95)})`;
+    g.beginPath();g.arc(x,y,rnd(.5,1.9),0,TAU);g.fill();
+  }
+  g.globalCompositeOperation='destination-in';
+  gr=g.createRadialGradient(N/2,N/2,N*.18,N/2,N/2,N/2);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(1,'rgba(0,0,0,0)');
+  g.fillStyle=gr;g.fillRect(0,0,N,N);return c;
+}
+const GAL=makeGalaxy();
+
+/* ---------- Cielo ---------- */
+let sky=[];
+function makeSky(){
+  sky=[];const n=Math.floor(W*H/4200);
+  for(let i=0;i<n;i++)sky.push({x:Math.random(),y:Math.random()*.8,s:rnd(.4,1.5),a:rnd(.25,1),sp:rnd(.6,2.2),d:rnd(.2,1),
+    c:['#ffffff','#ffb3c1','#b3ffcc','#e2c6ff','#fff3b0'][(Math.random()*5)|0]});
+}
+
+/* =====================================================================
+   CÁMARA 3D ligera
+   ===================================================================== */
+const CAM={cc:1,sc:0,cp:1,sp:0,S:2,cx:0,gy:0,D:900};
+function proj(x,y,z,o){
+  const x1=x*CAM.cc+z*CAM.sc, z1=-x*CAM.sc+z*CAM.cc;
+  const Y=y*CAM.cp-z1*CAM.sp, d=z1*CAM.cp+y*CAM.sp, k=CAM.D/(CAM.D-d);
+  o[0]=CAM.cx+x1*CAM.S*k; o[1]=CAM.gy-Y*CAM.S*k; o[2]=k;
+}
+function projLin(x,y,z){ // sin perspectiva (base del suelo)
+  const x1=x*CAM.cc+z*CAM.sc, z1=-x*CAM.sc+z*CAM.cc;
+  return [x1*CAM.S, -(y*CAM.cp-z1*CAM.sp)*CAM.S];
+}
+
+/* =====================================================================
+   SUAVIZADO (resortes críticos) — todo el movimiento nace de aquí
+   ===================================================================== */
+const ST={},VL={};
+function track(k,target,om,dt){
+  if(ST[k]===undefined){ST[k]=target;VL[k]=0;}
+  const x=ST[k],v=VL[k],a=om*om*(target-x)-2*om*v;
+  VL[k]=v+a*dt;ST[k]=x+VL[k]*dt;return ST[k];
+}
+
+/* =====================================================================
+   COREOGRAFÍA — secciones de 8 tiempos (≈4 s)
+   ===================================================================== */
+const BASE={sep:46,ow:0,spin:0,pM:.12,pW:.08,dip:0,Klat:.20,Kh:.70,mF:0,wF:0,wS:0,sway:6,bounce:2.5,step:1,touch:0,up:0,hug:0,cam:0};
+const SEC={
+  intro:{},
+  sway:{},
+  orbit:{sep:50,ow:.52,Klat:.22,Kh:.68,step:1.7,sway:0,bounce:3},
+  twirl:{sep:64,spin:1.57,Klat:.07,Kh:.99,mF:1,wS:1,pM:.04,pW:.0,step:.8,bounce:3,sway:0},
+  tender:{sep:34,Klat:.15,Kh:.60,pM:.20,pW:.17,touch:1,sway:5,bounce:1,step:.4},
+  raise:{sep:20,Klat:.04,Kh:1.12,up:1,mF:1,wF:1,pM:.02,pW:.0,sway:3,bounce:3.2,step:.8},
+  point:{sep:52,Klat:.3,Kh:.84,up:.3,mF:1,wF:1,sway:4,bounce:3,step:1.2},
+  apart:{sep:84,Klat:.1,Kh:1.1,up:1,mF:1,wF:1,sway:0,bounce:3.5,step:1.6},
+  embrace:{sep:14,hug:1,Klat:0,Kh:.55,touch:1,pM:.2,pW:.17,sway:6,bounce:1,step:.3},
+  back:{sep:20,hug:1,touch:.4,sway:8,bounce:1.5,step:.5,cam:1},
+  hands:{sep:50,Klat:.2,Kh:.66,mF:1,wF:1,sway:3,bounce:3,step:1.6,ow:.3,cam:1},
+  walk:{sep:58,ow:-.35,spin:1.57,Klat:.1,Kh:.9,mF:1,wF:1,step:1.8,bounce:3.2,sway:0,cam:1},
+  dip:{sep:42,Klat:.38,Kh:.60,sway:0,bounce:1.5,step:.9},
+  chase:{sep:72,ow:-.62,Klat:.50,Kh:.64,mF:1,wF:1,pM:.05,pW:.03,step:2,bounce:3.2,sway:0}
+};
+const CYCLE=['raise','point','apart','embrace','back','hands','walk'];
+function targets(name,bi,t){
+  const s=Object.assign({},BASE,SEC[name]);
+  if(name==='intro'){const p=ss(.12,.94,t/INTRO_END);s.sep=172-124*p;s.Klat=0;s.Kh=.66;s.mF=1;s.wF=1;s.sway=0;s.step=.4;s.pM=.02;s.pW=-.02;}
+  if(name==='dip')s.dip=ss(2,3.6,bi)-ss(6,7.6,bi);
+  return s;
+}
+
+/* =====================================================================
+   ESQUELETO: IK de dos huesos + figura
+   ===================================================================== */
+function ik(Sh,T,l1,l2,pole){
+  let d=sub(T,Sh),L=len(d);const mx=(l1+l2)*.998;
+  if(L>mx){d=mul(d,mx/L);L=mx;} if(L<1)L=1;
+  const dir=mul(d,1/L),a=(l1*l1-l2*l2+L*L)/(2*L),h=Math.sqrt(Math.max(0,l1*l1-a*a));
+  let pp=sub(pole,mul(dir,dot(pole,dir)));const pl=len(pp);pp=pl<1e-4?[0,1,0]:mul(pp,1/pl);
+  return {E:add(add(Sh,mul(dir,a)),mul(pp,h)),T:add(Sh,d)};
+}
+function clampReach(Sh,T,r){const d=sub(T,Sh),L=len(d);return L>r?add(Sh,mul(d,r/L)):T;}
+
+function mkFig(isM){
+  const H_=isM?178:163,th=isM?1:.86;
+  const segs=[['head','head',8.5*(isM?1:.95),60],['neck','head',3.2*th,14],['neck','chest',10.5*th,40],['chest','waist',10.5*th,36],
+    ['waist','pelvis',9.5*th,32],['shL','shR',4,24],['shL','elL',4.2*th,22],['elL','haL',3.3*th,22],['shR','elR',4.2*th,22],
+    ['elR','haR',3.3*th,22],['hipL','hipR',6*th,18],['hipL','knL',6.8*th,34],['knL','knL',0,0],['knL','ftL',4.8*th,34],
+    ['hipR','knR',6.8*th,34],['knR','ftR',4.8*th,34]];
+  const f={isM,H:H_,th,J:{},pal:isM?PAL_M:PAL_W,spr:isM?SPR_M:SPR_W,parts:[],cloth:[],pp:{},yaw:0,
+    lines:[['neck','chest',10],['chest','waist',10],['waist','pelvis',9],['shL','shR',4],['shL','elL',4],['elL','haL',3],
+      ['shR','elR',4],['elR','haR',3],['hipL','hipR',6],['hipL','knL',6],['knL','ftL',4.5],['hipR','knR',6],['knR','ftR',4.5],['neck','head',3]]};
+  const rb=()=>{let x,y,z;do{x=rnd(-1,1);y=rnd(-1,1);z=rnd(-1,1);}while(x*x+y*y+z*z>1);return[x,y,z];};
+  const mk=o=>Object.assign({x:W/2+rnd(-.4,.4)*W,y:H*rnd(.1,.7),vx:0,vy:0,ph:rnd(0,TAU),sz:rnd(.9,2.1),c:(Math.random()*5)|0,K:260,D:24,al:rnd(.55,.95),o:rb()},o);
+  for(const sg of segs){for(let i=0;i<sg[3];i++)f.parts.push(mk({k:'b',a:sg[0],b:sg[1],t:sg[0]===sg[1]?0:(i+Math.random())/sg[3],th:sg[2]}));}
+  const nc=isM?100:150;
+  for(let i=0;i<nc;i++){const l=Math.pow(Math.random(),.7);
+    f.cloth.push(mk({k:isM?'coat':'skirt',a:Math.random()*TAU,u:rnd(-1,1),l,K:mix(150,34,l),D:0,sz:rnd(1,2.2),al:rnd(.35,.8)}));}
+  if(!isM)for(let i=0;i<80;i++){const l=Math.random();
+    f.cloth.push(mk({k:'braid',s:i%2?1:-1,l,K:mix(120,16,l),D:0,sz:rnd(.8,1.7),al:rnd(.5,.9)}));}
+  for(const p of f.cloth)p.D=1.75*Math.sqrt(p.K);
+  return f;
+}
+const MAN=mkFig(true),WOM=mkFig(false);
+
+function buildBody(f,P,yaw,pitch,roll,crouch,feet,touch){
+  const H_=f.H,J=f.J,cY=Math.cos(yaw),sY=Math.sin(yaw);
+  f.yaw=yaw;f.cY=cY;f.sY=sY;
+  const loc=(x,y,z)=>[-x*cY+z*sY,y,x*sY+z*cY];
+  const cp=Math.cos(pitch),sp=Math.sin(pitch),cr=Math.cos(roll),sr=Math.sin(roll);
+  const upv=(x,y,z)=>{const y1=y*cp-z*sp,z1=y*sp+z*cp,x2=x*cr+y1*sr,y2=-x*sr+y1*cr;return loc(x2,y2,z1);};
+  f.loc=loc;f.upv=upv;
+  const pel=[P[0],.50*H_-crouch,P[2]];J.pelvis=pel;
+  const A=v=>add(pel,v);
+  J.waist=A(upv(0,.10*H_,0));J.chest=A(upv(0,.20*H_,0));J.neck=A(upv(0,.29*H_,0));
+  J.head=add(A(upv(0,.385*H_,0)),loc(0,-.012*H_*touch,.05*H_*touch));
+  const sw=(f.isM?.125:.105)*H_,sy=.275*H_;
+  J.shL=A(upv(-sw,sy,0));J.shR=A(upv(sw,sy,0));
+  const hw=(f.isM?.055:.062)*H_;
+  J.hipL=A(loc(-hw,-.02*H_,0));J.hipR=A(loc(hw,-.02*H_,0));
+  const ank=.035*H_,pole=add(loc(0,0,1),loc(0,0,0));
+  const fl=add(P,loc(feet.xl,ank+feet.ll,feet.zl)),fr=add(P,loc(feet.xr,ank+feet.lr,feet.zr));
+  const kl=ik(J.hipL,fl,.245*H_,.245*H_,add(loc(0,0,1),loc(-.25,0,0)));
+  const kr=ik(J.hipR,fr,.245*H_,.245*H_,add(loc(0,0,1),loc(.25,0,0)));
+  J.knL=kl.E;J.ftL=kl.T;J.knR=kr.E;J.ftR=kr.T;
+  f.right=[-cY,0,sY];f.fwd=[sY,0,cY];
+  f.l1=.17*H_;f.l2=.185*H_;f.reach=(f.l1+f.l2)*.97;
+}
+function buildArm(f,side,T,pole){
+  const J=f.J,sh=side<0?J.shL:J.shR,r=ik(sh,T,f.l1,f.l2,pole);
+  if(side<0){J.elL=r.E;J.haL=r.T;}else{J.elR=r.E;J.haR=r.T;}
+}
+
+/* =====================================================================
+   ESTADO DE LA ESCENA
+   ===================================================================== */
+const SC={t:0,clock:0,secName:'intro',lastN:-99,theta:Math.PI,spinA:0,gal:0,ripples:[],lastRip:-1,
+  hearts:[],stars:[],shoot:[],nextShoot:3,dip:0,heartBurst:false};
+const RIB=[{pts:[],c:'#ffb3bd',w:2.4},{pts:[],c:'#ff3b5c',w:1.8},{pts:[],c:'#86efac',w:1.8}];
+const DUST_MAX=700,dust=[];let dustI=0;
+for(let i=0;i<DUST_MAX;i++)dust.push({l:0,ml:1,x:0,y:0,vx:0,vy:0,s:1,c:null});
+let KPOS=[0,0,0];
+
+function envAt(t){
+  const i=t/.25,a=clamp(Math.floor(i),0,ENV.length-2),f=clamp(i-a,0,1);
+  return mix(ENV[a],ENV[a+1],f);
+}
+
+/* =====================================================================
+   AUDIO
+   ===================================================================== */
+let audio=document.getElementById('bgMusic'),audioOK=false,started=true,muted=false;
+setInterval(()=>{audioOK=!!audio&&!audio.paused&&audio.readyState>1;},400);
+
+/* =====================================================================
+   ACTUALIZACIÓN (cinemática + partículas)
+   ===================================================================== */
+const _o=[0,0,0],PJ={m:{},w:{}};
+let frameN=0;
+
+function update(dt){
+  frameN++;
+  /* --- reloj de la canción --- */
+  if(started){
+    SC.clock+=dt;
+    if(audio&&audioOK&&!audio.paused){
+      const at=audio.currentTime,diff=at-(SC.clock%DUR);
+      if(Math.abs(diff)>.3)SC.clock=at;else SC.clock+=diff*.08;
+    }
+    SC.clock%=DUR;
+  }
+  const t=SC.clock;SC.t=t;
+  const b=(t-BEAT0)*BPM/60*SLOW;
+  const eRaw=envAt(t),e=clamp(track('e',eRaw,1.6,dt),0,1),eSlow=track('eS',eRaw,.7,dt);
+  const eN=clamp((e-.1)/.8,0,1);
+
+  /* --- sección actual --- */
+  const bStart=Math.ceil((INTRO_END-BEAT0)*BPM/60*SLOW);
+  let name='intro',bi=0;
+  if(b>=bStart){
+    const n=Math.floor((b-bStart)/8);bi=(b-bStart)-n*8;
+    if(n!==SC.lastN){SC.lastN=n;SC.cyc=SC.cyc===undefined?0:SC.cyc;
+      if(eSlow<.5)SC.secName='tender';else{SC.secName=CYCLE[SC.cyc%CYCLE.length];SC.cyc++;}}
+    name=SC.secName;
+  }else{SC.lastN=-99;SC.cyc=0;}
+  const T_=targets(name,bi,t);
+
+  const sep0=track('sep',T_.sep,3.2,dt),ow=track('ow',T_.ow,3,dt),spinW=track('spin',T_.spin,3.2,dt);
+  const pM=track('pM',T_.pM,3,dt),pW=track('pW',T_.pW,3,dt),Dd=clamp(track('dip',T_.dip,5,dt),0,1);
+  const Klat=track('Klat',T_.Klat,3.5,dt),Kh=track('Kh',T_.Kh,3.5,dt);
+  const mF=track('mF',T_.mF,3,dt),wF=track('wF',T_.wF,3,dt),wS=track('wS',T_.wS,3,dt);
+  const sway=track('sway',T_.sway,2.5,dt),bounce=track('bounce',T_.bounce,3,dt),step=track('step',T_.step,3,dt);
+  const touch=track('touch',T_.touch,3,dt);
+  const up=track('up',T_.up,3,dt),hug=track('hug',T_.hug,3,dt),camB=track('camB',T_.cam,1.1,dt);
+
+  /* --- órbita y giro (integrados + se acomodan al terminar) --- */
+  const bps=BPM/60*SLOW;
+  SC.theta+=ow*bps*dt;
+  if(Math.abs(ow)<.18&&T_.ow===0){const tg=Math.PI*Math.round(SC.theta/Math.PI);SC.theta+=(tg-SC.theta)*(1-Math.exp(-dt*1.6));}
+  SC.spinA+=spinW*bps*dt;
+  if(Math.abs(spinW)<.3&&T_.spin===0){const tg=TAU*Math.round(SC.spinA/TAU);SC.spinA+=(tg-SC.spinA)*(1-Math.exp(-dt*2.2));}
+  SC.gal+=dt*(.03+.06*eN);
+
+  /* --- cámara --- */
+  const camYaw=camB*2.9+.16+.30*Math.sin(TAU*t/26)+.12*Math.sin(TAU*t/9.5);
+  const camPitch=.40+.035*Math.sin(t*.21);
+  const pulse=Math.exp(-(((b%1)+1)%1)*4.5);
+  const zoom=1+.012*pulse*(.3+eN);
+  S=Math.min(W/200,H/300)*zoom;
+  CAM.cc=Math.cos(camYaw);CAM.sc=Math.sin(camYaw);CAM.cp=Math.cos(camPitch);CAM.sp=Math.sin(camPitch);
+  CAM.S=S;CAM.cx=W/2;CAM.gy=H*(W<H?.72:.75);
+
+  /* --- posiciones de la pareja --- */
+  const sep=sep0-14*Dd,r=Math.max(10,sep/2),th=SC.theta;
+  const tan=[-Math.sin(th),0,Math.cos(th)],sw=sway*Math.sin(Math.PI*b/2);
+  const C=mul(tan,sw);
+  const Pm=add(C,[Math.cos(th)*r,0,Math.sin(th)*r]),Pw=add(C,[-Math.cos(th)*r,0,-Math.sin(th)*r]);
+  const yM=Math.atan2(Pw[0]-Pm[0],Pw[2]-Pm[2]),yW=yM+Math.PI+SC.spinA;
+
+  const bob=.5-.5*Math.cos(Math.PI*b);
+  const feetFor=(f,ph,lead)=>{
+    const H_=f.H,bx=(f.isM?.07:.075)*H_,sz=step*.085*H_*(1-Dd),la=step*6*(1-.6*Dd);
+    const c=Math.cos(ph),s=Math.sin(ph);
+    const o={xl:-bx,xr:bx,zl:sz*c,zr:-sz*c,ll:la*Math.max(0,-s),lr:la*Math.max(0,s)};
+    if(lead){o.zl+=.30*H_*Dd;o.zr-=.20*H_*Dd;o.xl*=1+.5*Dd;o.xr*=1+.5*Dd;}
+    else{o.lr+=24*Dd;o.zr-=.16*H_*Dd;}
+    return o;
+  };
+  buildBody(MAN,Pm,yM,pM+.30*Dd,0,bounce*bob+28*Dd,feetFor(MAN,Math.PI*b,true),touch);
+  buildBody(WOM,Pw,yW,pW-1.15*Dd,-.12*Dd,bounce*.7*bob+14*Dd,feetFor(WOM,Math.PI*b+Math.PI,false),touch);
+
+  /* --- brazos --- */
+  const mj=MAN.J,wj=WOM.J,rM=MAN.right,fM=MAN.fwd,rW=WOM.right,fW=WOM.fwd;
+  const Hm=MAN.H,Hw=WOM.H;
+  // punto de unión de manos (mano derecha de él + mano izquierda de ella: el lado que mira a cámara)
+  const mid=mul(add(Pm,Pw),.5);
+  let K=[mid[0]+rM[0]*Klat*Hm,Kh*Hm,mid[2]+rM[2]*Klat*Hm];
+  K=clampReach(mj.shR,K,MAN.reach);K=clampReach(wj.shL,K,WOM.reach);K=clampReach(mj.shR,K,MAN.reach);
+  let Km=clampReach(mj.shR,K,MAN.reach),Kw=clampReach(wj.shL,K,WOM.reach);
+  Km=lerp3(Km,clampReach(mj.shR,wj.waist,MAN.reach),hug);Kw=lerp3(Kw,clampReach(wj.shL,mj.waist,WOM.reach),hug);
+  // mano libre de él: espalda de ella ↔ abierta
+  const back=add(add(wj.waist,mul(fM,.055*Hw)),mul(rM,-.04*Hw));
+  const outM=add(mj.shL,add(mul(rM,-.42*Hm),[0,-.03*Hm,0]));
+  let mFree=lerp3(back,outM,mF);
+  // mano libre de ella: hombro de él ↔ abierta ↔ falda ↔ lanzada atrás (dip)
+  const onSh=add(mj.shL,[0,.02*Hm,0]);
+  const outW=add(wj.shR,add(WOM.loc(.36*Hw,0,-.08*Hw),[0,.02*Hw,0]));
+  const skirt=add(wj.hipR,WOM.loc(.10*Hw,-.03*Hw,.05*Hw));
+  const thrown=add(wj.shR,WOM.loc(.20*Hw,.28*Hw,-.30*Hw));
+  let wFree=lerp3(lerp3(onSh,outW,wF),skirt,wS);wFree=lerp3(wFree,thrown,Dd);
+  mFree=lerp3(mFree,add(mj.shL,[-.1*Hm,.45*Hm,0]),up);wFree=lerp3(wFree,add(wj.shR,[.1*Hw,.4*Hw,0]),up);
+  const dn=[0,-1,0];
+  buildArm(MAN,1,Km,add(dn,mul(rM,.6)));
+  buildArm(MAN,-1,mFree,add(dn,mul(rM,-.6)));
+  buildArm(WOM,-1,Kw,add(dn,mul(rW,-.6)));
+  buildArm(WOM,1,wFree,add(dn,mul(rW,.6)));
+  KPOS=lerp3(MAN.J.haR,WOM.J.haL,.5);
+
+  /* --- proyección de articulaciones --- */
+  for(const [f,pj] of [[MAN,PJ.m],[WOM,PJ.w]]){
+    for(const k in f.J){const p=f.J[k];proj(p[0],p[1],p[2],_o);
+      const prev=f.pp[k];const cur=[_o[0],_o[1],_o[2]];
+      cur.v=prev?Math.hypot(cur[0]-prev[0],cur[1]-prev[1]):0;f.pp[k]=cur;pj[k]=cur;}
+  }
+
+  /* --- partículas de cuerpo y tela (resortes en pantalla) --- */
+  const gt=t,flare=clamp(Math.abs(spinW)/1.6,0,1)+.14*eN+Math.abs(ow)*.12;
+  for(const f of [MAN,WOM]){
+    const J=f.J,H_=f.H;
+    const upd=(p,x,y,z)=>{
+      proj(x,y,z,_o);p.k2=_o[2];
+      const ax=(_o[0]-p.x)*p.K-p.vx*p.D,ay=(_o[1]-p.y)*p.K-p.vy*p.D;
+      p.vx+=ax*dt;p.vy+=ay*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
+    };
+    for(const p of f.parts){
+      const A=J[p.a],B=J[p.b],br=1+.12*Math.sin(gt*2.1+p.ph),rad=p.th*br;
+      upd(p,A[0]+(B[0]-A[0])*p.t+p.o[0]*rad,A[1]+(B[1]-A[1])*p.t+p.o[1]*rad,A[2]+(B[2]-A[2])*p.t+p.o[2]*rad);
+    }
+    for(const p of f.cloth){
+      let x,y,z;
+      if(p.k==='skirt'){
+        const rr=(.075*H_+p.l*(.05*H_+flare*.24*H_))*(1+.07*Math.sin(3*p.a+gt*3+p.l*4));
+        const ang=p.a+f.yaw*1.0;
+        x=J.pelvis[0]+Math.cos(ang)*rr;z=J.pelvis[2]+Math.sin(ang)*rr;
+        y=J.pelvis[1]-.02*H_-p.l*(.30*H_-flare*.11*H_)+p.o[1]*1.2;
+      }else if(p.k==='coat'){
+        const S0=J.neck,E0=[J.pelvis[0],J.pelvis[1]-.18*H_,J.pelvis[2]];
+        const q=lerp3(S0,E0,p.l),w=.115*H_*(1+p.l*.6);
+        x=q[0]-f.fwd[0]*.07*H_*p.l+f.right[0]*p.u*w;y=q[1]+p.o[1];z=q[2]-f.fwd[2]*.07*H_*p.l+f.right[2]*p.u*w;
+      }else{ // trenzas
+        const bs=add(J.head,mul(f.right,p.s*.035*H_));
+        x=bs[0]-f.fwd[0]*.035*H_*(.4+p.l)+f.right[0]*p.s*.012*H_*Math.sin(gt*3+p.l*5);
+        y=bs[1]-.02*H_-p.l*.36*H_;
+        z=bs[2]-f.fwd[2]*.035*H_*(.4+p.l)+f.right[2]*p.s*.012*H_*Math.sin(gt*3+p.l*5);
+      }
+      upd(p,x,y,z);
+    }
+  }
+
+  /* --- ondas en el suelo al ritmo --- */
+  const rb2=Math.floor(b/2);
+  if(rb2!==SC.lastRip&&started){SC.lastRip=rb2;SC.ripples.push({b0:b,pink:(rb2&1)===0});if(SC.ripples.length>5)SC.ripples.shift();}
+
+  /* --- corazones --- */
+  if(Dd>.9&&!SC.heartBurst){SC.heartBurst=true;for(let i=0;i<14;i++)spawnHeart(mid);}
+  if(Dd<.3)SC.heartBurst=false;
+  if(started&&((name==='tender'&&Math.random()<dt*1.4)||(eN>.75&&Math.random()<dt*.5)))spawnHeart(mid);
+  for(let i=SC.hearts.length-1;i>=0;i--){const h=SC.hearts[i];h.age+=dt;h.x+=h.vx*dt+Math.sin(h.age*2+h.ph)*10*dt;h.y+=h.vy*dt;if(h.age>h.life)SC.hearts.splice(i,1);}
+
+  /* --- polvo estelar --- */
+  const emit=(pt,rate)=>{
+    if(Math.random()>rate*Q)return;const d=dust[dustI=(dustI+1)%DUST_MAX];
+    d.l=d.ml=rnd(.7,1.6);d.x=pt[0]+rnd(-4,4);d.y=pt[1]+rnd(-4,4);d.vx=rnd(-14,14);d.vy=rnd(-18,6);d.s=rnd(.5,1.5);
+    d.c=Math.random()<.2?SPR_WHITE:null;return d;
+  };
+  for(const [f,pj] of [[MAN,PJ.m],[WOM,PJ.w]]){
+    for(const k of ['haL','haR','ftL','ftR','head']){
+      const p=pj[k],rate=clamp(.05+p.v*.012,0,.7);const d=emit(p,rate);
+      if(d&&!d.c)d.c=f.spr[(Math.random()*5)|0];
+    }
+  }
+  for(const d of dust){if(d.l>0){d.l-=dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.vy+=6*dt;}}
+
+  /* --- cintas luminosas en las manos --- */
+  const rp=[PJ.m.haR,PJ.m.haL,PJ.w.haR];
+  RIB.forEach((rb,i)=>{rb.pts.push([rp[i][0],rp[i][1]]);if(rb.pts.length>26)rb.pts.shift();});
+
+  /* --- estrellas fugaces --- */
+  SC.nextShoot-=dt;
+  if(SC.nextShoot<=0&&started){SC.nextShoot=rnd(5,9);const a=rnd(.4,.7);SC.shoot.push({x:rnd(.2,1)*W,y:rnd(0,.3)*H,vx:-Math.cos(a)*700,vy:Math.sin(a)*500,l:1});}
+  for(let i=SC.shoot.length-1;i>=0;i--){const s=SC.shoot[i];s.x+=s.vx*dt;s.y+=s.vy*dt;s.l-=dt*1.1;if(s.l<=0)SC.shoot.splice(i,1);}
+
+  SC.pulse=pulse;SC.eN=eN;SC.b=b;SC.Dd=Dd;SC.mid=mid;SC.r=r;SC.camYaw=camYaw;
+}
+function spawnHeart(mid){
+  proj(mid[0],150,mid[2],_o);
+  SC.hearts.push({x:_o[0]+rnd(-40,40),y:_o[1]+rnd(-30,10),vx:rnd(-8,8),vy:-rnd(30,60),age:0,life:rnd(2.5,4),ph:rnd(0,TAU),s:rnd(14,26)});
+}
+
+/* =====================================================================
+   DIBUJO
+   ===================================================================== */
+function drawSky(){
+  const e=SC.eN,P=SC.pulse,t=SC.t;
+  ctx.globalCompositeOperation='source-over';
+  ctx.clearRect(0,0,W,H);
+  ctx.globalCompositeOperation='lighter';
+  const R=Math.max(W,H)*.62;
+  let g=ctx.createRadialGradient(W*.2,H*.2,0,W*.2,H*.2,R);
+  g.addColorStop(0,`rgba(255,255,255,${.10+.05*e+.02*P})`);g.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  g=ctx.createRadialGradient(W*.85,H*.3,0,W*.85,H*.3,R);
+  g.addColorStop(0,`rgba(16,185,129,${.10+.05*e+.02*P})`);g.addColorStop(1,'rgba(16,185,129,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  const par=SC.camYaw*26;
+  const lim=0;
+  for(let i=0;i<lim;i++){const s=sky[i];
+    const a=s.a*(.55+.45*Math.sin(t*s.sp+i));
+    ctx.globalAlpha=a;ctx.fillStyle=s.c;
+    const x=((s.x*W+par*s.d)%W+W)%W;ctx.fillRect(x,s.y*H,s.s,s.s);}
+  ctx.globalAlpha=1;
+}
+function drawFloor(){
+  const e=SC.eN,P=SC.pulse;
+  const Rf=Math.max(W,H)*.66/S, k=(Rf*2)/GAL.width;
+  const ex=projLin(1,0,0),ez=projLin(0,0,1),g=SC.gal,cg=Math.cos(g),sg=Math.sin(g);
+  const A=[k*(cg*ex[0]+sg*ez[0]),k*(cg*ex[1]+sg*ez[1])],B=[k*(-sg*ex[0]+cg*ez[0]),k*(-sg*ex[1]+cg*ez[1])];
+  const n=GAL.width/2,ox=CAM.cx,oy=CAM.gy;
+  ctx.globalCompositeOperation='lighter';
+  ctx.globalAlpha=.78+.18*e+.06*P;
+  ctx.setTransform(DPR*A[0],DPR*A[1],DPR*B[0],DPR*B[1],DPR*(ox-n*(A[0]+B[0])),DPR*(oy-n*(A[1]+B[1])));
+  ctx.drawImage(GAL,0,0);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.globalAlpha=1;
+  // ondas al ritmo
+  for(const rp of SC.ripples){
+    const age=(SC.b-rp.b0)/6;if(age<0||age>1)continue;
+    const rad=24+age*Rf*.55,al=Math.pow(1-age,1.7)*.55;
+    ctx.strokeStyle=rp.pink?`rgba(255,150,205,${al})`:`rgba(110,231,183,${al})`;
+    ctx.lineWidth=2.2*(1-age)+.6;ctx.beginPath();
+    for(let i=0;i<=64;i++){const a=i/64*TAU;proj(Math.cos(a)*rad,0,Math.sin(a)*rad,_o);i?ctx.lineTo(_o[0],_o[1]):ctx.moveTo(_o[0],_o[1]);}
+    ctx.stroke();
+  }
+  // resplandor bajo cada bailarín
+  for(const [f,sp] of [[MAN,SPR_M[0]],[WOM,SPR_W[0]]]){
+    const p=f.J.pelvis;proj(p[0],0,p[2],_o);const rr=62*S*_o[2]*(1+.15*P);
+    ctx.globalAlpha=.55+.25*P;ctx.drawImage(sp,_o[0]-rr,_o[1]-rr*.4,rr*2,rr*.8);
+  }
+  ctx.globalAlpha=1;
+}
+function drawBones(f,pj){
+  ctx.lineCap='round';
+  const col=f.isM?'255,70,110':'60,235,170',sc=S;
+  for(const [a,b,th] of f.lines){
+    const A=pj[a],B=pj[b],w=th*f.th*2*sc*A[2];
+    ctx.strokeStyle=`rgba(${col},.10)`;ctx.lineWidth=w*1.6;ctx.beginPath();ctx.moveTo(A[0],A[1]);ctx.lineTo(B[0],B[1]);ctx.stroke();
+    ctx.strokeStyle=`rgba(${col},.22)`;ctx.lineWidth=Math.max(1,w*.45);ctx.stroke();
+  }
+}
+function drawParts(f,lim){
+  const spr=f.spr,gl=.9+.35*SC.eN+.3*SC.pulse;
+  const draw=(arr,n)=>{
+    for(let i=0;i<n;i++){const p=arr[i];const d=p.sz*2.4*S*(p.k2||1)*gl;
+      ctx.globalAlpha=p.al*(.8+.2*Math.sin(SC.t*3+p.ph));
+      ctx.drawImage(spr[p.c],p.x-d/2,p.y-d/2,d,d);}
+  };
+  draw(f.parts,Math.floor(f.parts.length*lim));draw(f.cloth,Math.floor(f.cloth.length*lim));
+  ctx.globalAlpha=1;
+}
+function drawRibbons(){
+  ctx.lineCap='round';
+  RIB.forEach(rb=>{const p=rb.pts;
+    for(let i=1;i<p.length;i++){const a=i/p.length;
+      ctx.strokeStyle=rb.c;ctx.globalAlpha=a*a*.6;ctx.lineWidth=rb.w*a*(S/2);
+      ctx.beginPath();ctx.moveTo(p[i-1][0],p[i-1][1]);ctx.lineTo(p[i][0],p[i][1]);ctx.stroke();}});
+  ctx.globalAlpha=1;
+}
+function render(){
+  drawSky();drawFloor();
+  ctx.globalCompositeOperation='lighter';
+  // orden por profundidad aproximada (aditivo: da igual, pero así las cintas quedan arriba)
+  drawBones(MAN,PJ.m);drawBones(WOM,PJ.w);
+  drawParts(MAN,Q);drawParts(WOM,Q);
+  // cabezas
+  for(const [pj,sp] of [[PJ.m,SPR_M[4]],[PJ.w,SPR_W[4]]]){const h=pj.head,d=26*S*h[2]*(1+.1*SC.pulse);ctx.globalAlpha=.55;ctx.drawImage(sp,h[0]-d/2,h[1]-d/2,d,d);}
+  ctx.globalAlpha=1;
+  drawRibbons();
+  // chispa donde se toman de la mano
+  proj(KPOS[0],KPOS[1],KPOS[2],_o);
+  const ks=(18+10*SC.pulse)*S*_o[2]*.6;ctx.globalAlpha=.9;ctx.drawImage(SPR_WHITE,_o[0]-ks/2,_o[1]-ks/2,ks,ks);
+  ctx.globalAlpha=.7;ctx.drawImage(SPR_PINK,_o[0]-ks,_o[1]-ks,ks*2,ks*2);ctx.globalAlpha=1;
+  // polvo estelar
+  for(const d of dust){if(d.l<=0)continue;const a=d.l/d.ml,sz=d.s*S*3.2*(.4+a);
+    ctx.globalAlpha=a*.85;ctx.drawImage(d.c||SPR_WHITE,d.x-sz/2,d.y-sz/2,sz,sz);}
+  // corazones
+  for(const h of SC.hearts){const a=Math.min(1,h.age*1.5)*Math.min(1,(h.life-h.age)*1.2);
+    ctx.globalAlpha=a*.9;const s=h.s*(S/2.2);ctx.drawImage(HEART,h.x-s/2,h.y-s/2,s,s);}
+  // estrellas fugaces
+  for(const s of SC.shoot){ctx.globalAlpha=s.l;ctx.strokeStyle='#fff';ctx.lineWidth=1.6;ctx.beginPath();
+    ctx.moveTo(s.x,s.y);ctx.lineTo(s.x-s.vx*.09,s.y-s.vy*.09);ctx.stroke();}
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='destination-in';
+  const mg=ctx.createRadialGradient(W/2,H*.5,H*.2,W/2,H*.5,H*.5);mg.addColorStop(0,'rgba(0,0,0,1)');mg.addColorStop(.7,'rgba(0,0,0,.9)');mg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=mg;ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over';
+  if(window.__danceTex)window.__danceTex.needsUpdate=true;
+}
+
+/* =====================================================================
+   BUCLE
+   ===================================================================== */
+function resize(){DPR=1;W=512;H=768;cv.width=W;cv.height=H;ctx.setTransform(1,0,0,1,0,0);makeSky();}
+resize();
+
+let last=0,avg=1/60,slow=0;
+function loop(now){
+  requestAnimationFrame(loop);
+  if(!last){last=now;return;}
+  let dt=(now-last)/1000;last=now;dt=Math.min(dt,.05);
+  avg+=(dt-avg)*.05;
+  if(avg>.027){slow++;if(slow>30){Q=Math.max(.55,Q-.05);slow=0;}}else if(avg<.019){slow--;if(slow<-120){Q=Math.min(1,Q+.05);slow=0;}}
+  update(dt);render();
+}
+if(typeof window!=='undefined'){window.__dbg=null;}
+requestAnimationFrame(loop);
+})();
+
+</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script>
+    // Si algún CDN falla, se prueban otros antes de rendirse
+    function loadScript(src){return new Promise((ok,no)=>{const e=document.createElement('script');e.src=src;e.onload=ok;e.onerror=no;document.head.appendChild(e);});}
+    async function ensureThree(){
+      if(!window.THREE){
+        for(const u of ['https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js','https://unpkg.com/three@0.128.0/build/three.min.js']){
+          try{await loadScript(u);if(window.THREE)break;}catch(e){}
+        }
+      }
+      if(window.THREE && !THREE.OrbitControls){
+        for(const u of ['https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js','https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/controls/OrbitControls.js']){
+          try{await loadScript(u);if(THREE.OrbitControls)break;}catch(e){}
+        }
+      }
+      return !!(window.THREE && THREE.OrbitControls);
+    }
+    const mensajes = [{"t": "El mejor año de mi vida", "m": "Quiero comenzar diciéndote que muchas gracias por este tiempo juntos, por cada momento, cada sonrisa, cada abrazo y cada recuerdo que hemos construido. De verdad, este ha sido el mejor año que he vivido. No porque todos los días hayan sido perfectos, sino porque he tenido la oportunidad de compartirlos contigo. Llegaste a mi vida y, sin darte cuenta, comenzaste a convertir momentos normales en recuerdos que quiero conservar para siempre. No sabes lo feliz que me hace poder decir que eres parte de mi historia. Si pudiera volver a vivir este año desde el principio, sabiendo todo lo que pasaría, volvería a elegir cada momento contigo."}, {"t": "Gracias por nuestro aniversario", "m": "Muchas gracias por nuestro aniversario, por permitirme celebrar otro pedacito de nuestra historia y por seguir compartiendo tu tiempo conmigo. Quizá no siempre encuentre las palabras exactas para explicarte lo importante que eres, pero quiero que sepas que valoro muchísimo todo lo que hemos vivido. Cada mes, cada fecha especial y cada pequeño detalle tienen un significado enorme para mí. Gracias por las experiencias, por las risas, por las conversaciones y por todos esos momentos que se han quedado guardados en mi corazón. Espero que podamos celebrar muchísimos aniversarios más y seguir mirando atrás con la felicidad de saber todo lo que hemos construido."}, {"t": "Nunca estarás sola", "m": "Quiero que tengas presente algo: mientras yo exista, siempre tendrás a alguien dispuesto a escucharte, acompañarte y apoyarte. No importa si estás teniendo un día maravilloso o si simplemente sientes que todo está saliendo mal. Quiero ser esa persona con la que puedas hablar sin miedo, sin tener que fingir que estás bien y sin sentir que tienes que esconder lo que piensas. No tienes que cargar con todo tú sola ni encontrar siempre las palabras correctas. Puedes contarme lo que sea, a tu ritmo y cuando quieras. Siempre voy a valorar que confíes en mí."}, {"t": "Nunca te juzgaré", "m": "Quiero que sepas que conmigo puedes ser completamente tú. Puedes contarme tus pensamientos, tus preocupaciones, tus errores, tus miedos y hasta esas cosas que quizá te cuesta compartir con otras personas. No estoy aquí para señalarte, burlarme de ti ni hacerte sentir menos por lo que piensas o sientes. Quiero escucharte, comprenderte y ayudarte cuando lo necesites. No espero que seas perfecta, porque no tienes que serlo. Eres una persona y tienes derecho a equivocarte, aprender, cambiar de opinión y tener días difíciles. Mientras yo exista, tendrás a alguien que intentará comprenderte antes de juzgarte."}, {"t": "Siempre voy a apoyarte", "m": "Quiero verte cumplir tus sueños, alcanzar tus metas y convertirte en todo aquello que deseas ser. Quiero estar presente cuando consigas algo que te costó muchísimo trabajo y también cuando las cosas no salgan como esperabas. No quiero apoyarte solamente cuando todo vaya bien, sino también cuando necesites ánimo para volver a intentarlo. Nunca quiero que sientas que tienes que abandonar tus sueños por estar conmigo. Al contrario, quiero impulsarte a crecer, aprender y descubrir todo lo que eres capaz de conseguir. Tus logros también me harán feliz, porque me encanta verte avanzar."}, {"t": "Mi persona favorita", "m": "Eres mi persona favorita, y no solamente por las cosas bonitas que haces, sino por todo lo que eres. Me encantan tus ocurrencias, tu manera de hablar, tus expresiones, tus pequeñas manías y hasta esas cosas que probablemente tú consideras insignificantes. Me gusta conocerte cada día un poquito más, descubrir nuevas partes de ti y aprender cosas que antes no sabía. No necesito que hagas algo extraordinario para hacerme feliz. Muchas veces basta con recibir un mensaje tuyo, escuchar tu voz o saber cómo estuvo tu día para sentirme mucho mejor. Me encanta que seas tú."}, {"t": "Volvería a conocerte", "m": "Si tuviera la oportunidad de regresar al momento en el que todavía no nos conocíamos, volvería a recorrer todo el camino que me llevó hasta ti. Volvería a tener nuestras primeras conversaciones, volvería a descubrir tu personalidad y volvería a emocionarme por cada pequeño detalle. Incluso si tuviera que pasar nuevamente por todas las casualidades que hicieron posible que nos encontráramos, lo haría. Porque conocerte ha sido una de las experiencias más bonitas de mi vida. Me encanta nuestra historia, incluso las partes que todavía estamos escribiendo."}, {"t": "Quiero quedarme a tu lado", "m": "Quiero que sepas que mi intención es seguir a tu lado. No quiero que seas solamente una persona que pasó por mi vida y dejó recuerdos bonitos; quiero que sigamos creando muchos más. Quiero acompañarte en tus etapas, conocer tus nuevas versiones y aprender a quererte en cada una de ellas. No prometo que todo será perfecto ni que nunca tendremos desacuerdos, pero sí quiero esforzarme por hablar contigo, escucharte, comprenderte y solucionar las cosas juntos. No quiero rendirme ante las primeras dificultades. Quiero cuidar lo que tenemos porque realmente significa muchísimo para mí."}, {"t": "Tu felicidad me importa", "m": "Me importa muchísimo tu felicidad. Quiero verte sonreír, emocionarte por las cosas que te gustan, disfrutar tus pasatiempos y cumplir esos sueños que tanto deseas. También quiero que sepas que no tienes que estar feliz todo el tiempo para que yo quiera estar contigo. Puedes tener días malos, sentirte cansada, frustrarte o simplemente no tener ganas de hablar demasiado. No tienes que fingir nada conmigo. Me importa tu bienestar, tus sentimientos y todo aquello que forma parte de ti. Quiero que nuestra relación sea un espacio donde ambos podamos sentirnos queridos, respetados y tranquilos."}, {"t": "Nuestro pequeño universo", "m": "A veces pienso que tenemos un pequeño universo que solamente nosotros conocemos. Está lleno de nuestras bromas, nuestras conversaciones, las fotografías, los recuerdos, las palabras que utilizamos y esos momentos que quizá para otras personas no significan demasiado, pero que para nosotros son especiales. Por eso hice esta pequeña galaxia. Quería regalarte algo diferente, algo que pudieras recorrer y en lo que encontraras un poquito de todo lo que siento por ti. Cada corazón representa una parte de nuestra historia y cada estrella me recuerda lo afortunado que soy de compartir este universo contigo."}, {"t": "Gracias por ser tú", "m": "Gracias por ser tú, por tu forma de querer, por tu personalidad y por permitirme conocer tantas partes de tu vida. Gracias por los momentos en los que me has hecho reír, por las veces que me has escuchado y por cada detalle que has tenido conmigo. Quiero que sepas que no necesitas cambiar quién eres para merecer cariño. Me gusta conocerte tal como eres, con tus virtudes, tus defectos, tus ideas y tus sueños. No quiero que sientas que debes convertirte en alguien diferente para hacerme feliz. Me gusta la persona que eres y quiero seguir descubriéndola."}, {"t": "Los recuerdos que llevamos", "m": "Si pudiera guardar todos nuestros recuerdos en una cajita, seguramente necesitaría una muchísimo más grande. Hay tantos momentos que quisiera conservar: nuestras conversaciones, las risas, las fotografías, las pequeñas aventuras y hasta las cosas más sencillas que hemos compartido. Me gusta recordar cómo comenzó todo y darme cuenta de cuánto hemos vivido desde entonces. Quizá con el tiempo olvidemos algunos detalles, pero espero que nunca olvidemos lo bonito que ha sido coincidir y compartir esta etapa de nuestras vidas. Quiero que sigamos acumulando recuerdos que algún día podamos mirar y decir: qué bonito fue vivir todo eso juntos."}, {"t": "Quiero verte crecer", "m": "Quiero acompañarte mientras creces, aprendes y descubres nuevas cosas sobre ti misma. Quiero verte alcanzar tus objetivos, comenzar nuevos proyectos y sentirte orgullosa de todo lo que consigues. Si algún día dudas de tus capacidades, quiero recordarte que puedes aprender, mejorar y volver a intentarlo. No tienes que tener toda tu vida resuelta ni saber exactamente qué hacer en cada momento. Está bien equivocarse y cambiar de camino. Yo quiero apoyarte en tus decisiones, respetar tus sueños y celebrar cada pequeño avance contigo. Siempre voy a desear que tengas una vida llena de oportunidades y cosas bonitas."}, {"t": "Qué suerte haberte encontrado", "m": "Es curioso pensar en todas las posibilidades que existían antes de conocernos. Cada uno tenía su propia vida, sus propios problemas, sus actividades y sus historias, hasta que de alguna manera nuestros caminos se cruzaron. Y ahora puedo decir que entre todas esas casualidades, encontrarte fue una de las más bonitas. No sé cómo habría sido mi vida si nunca hubiéramos coincidido, pero sí sé que me alegra muchísimo que lo hayamos hecho. Gracias por llegar, por quedarte y por permitirme compartir contigo tantos momentos que hoy significan muchísimo para mí."}, {"t": "Siempre tendrás un espacio conmigo", "m": "Quiero que tengas la confianza de acercarte a mí cuando necesites hablar. Si tienes un problema, te escucharé. Si estás emocionada por algo, quiero que me lo cuentes. Si necesitas desahogarte, puedes hacerlo sin preocuparte por encontrar las palabras perfectas. No voy a minimizar lo que sientes ni a comparar tus problemas con los de otras personas. Lo que te importa merece ser escuchado. Quiero aprender a comprenderte mejor, saber cuándo necesitas un consejo y cuándo simplemente necesitas que alguien te preste atención. Tu voz y tus sentimientos siempre serán importantes para mí."}, {"t": "Hasta donde lleguen las estrellas", "m": "Si esta galaxia pudiera representar todo lo que siento, seguramente necesitaríamos muchísimas más estrellas para conseguirlo. Hay cosas que simplemente no sé explicar con palabras, pero que intento demostrarte con mis acciones, mis detalles y el tiempo que quiero compartir contigo. Quiero seguir descubriendo lugares, viviendo experiencias y construyendo recuerdos a tu lado. No sé qué tan lejos llegaremos ni qué sorpresas nos esperan, pero me emociona pensar en todas las posibilidades. Por ahora, solamente quiero disfrutar de este presente contigo y cuidar cada momento que tenemos."}, {"t": "Eres una parte muy bonita de mi vida", "m": "Desde que llegaste, muchas cosas comenzaron a tener un significado diferente. Me has regalado momentos que recuerdo con muchísimo cariño y experiencias que probablemente nunca habría imaginado vivir. Me gusta poder compartir contigo mis alegrías, mis ideas, mis proyectos y hasta las cosas más absurdas que se me ocurren. También quiero estar presente en tus días, conocer lo que te preocupa y acompañarte cuando necesites un poco de tranquilidad. No quiero que olvides lo importante que eres para mí ni lo agradecido que estoy por haberte conocido."}, {"t": "Me encantan tus pequeños detalles", "m": "Hay muchísimas cosas de ti que me encantan y algunas probablemente ni siquiera te imaginas. Tu forma de expresarte, tus gestos, tus risas, tus ocurrencias y esa manera tan tuya de hacer las cosas. Me gusta prestar atención a esos pequeños detalles porque son parte de lo que te hace única. A veces no necesito que ocurra algo especial para quedarme pensando en ti. Simplemente recuerdo alguna conversación o algún momento juntos y termino sonriendo. Espero que nunca dejes de ser tú y que siempre encuentres motivos para sentirte orgullosa de quien eres."}, {"t": "Gracias por elegirme", "m": "Gracias por elegirme para compartir una parte de tu vida, por confiar en mí y por permitirme formar parte de tus días. Sé que una relación no se construye solamente con palabras bonitas, sino también con paciencia, respeto, comunicación, comprensión y acciones. Por eso quiero esforzarme para demostrarte que valoro lo que tenemos. Quiero aprender de nuestros errores, reconocer cuando me equivoco y encontrar mejores maneras de hacerte sentir querida. No quiero dar por sentado tu cariño ni olvidar lo importante que es cuidar nuestra relación. Gracias por cada oportunidad de seguir construyendo esta historia juntos."}, {"t": "Mi promesa para ti", "m": "Y llegamos al último corazón de esta pequeña galaxia, pero eso no significa que nuestra historia termine aquí. Quiero darte las gracias por este aniversario y por regalarme el mejor año que he vivido. Gracias por cada recuerdo, cada sonrisa y cada momento que hemos compartido. Quiero que tengas algo muy presente: mientras yo exista, tendrás a alguien que desea escucharte, apoyarte y comprenderte. Alguien que no pretende juzgarte por tus errores, que quiere acompañarte en tus días difíciles y que también quiere celebrar contigo tus días felices. No quiero dejarte sola ante tus dificultades ni hacerte sentir que debes enfrentar todo sin apoyo. Quiero seguir eligiéndote, respetándote y cuidando lo que estamos construyendo. No puedo prometerte que la vida siempre será sencilla, pero sí puedo prometerte que pondré de mi parte para que nunca tengas que dudar de lo mucho que valoro estar contigo.\n\nY si algún día olvidas cuánto te quiero, vuelve a esta galaxia y recuerda que cada uno de estos corazones fue escrito pensando en ti. Hay millones de estrellas en el universo, pero ninguna podría reemplazar el lugar tan especial que tienes en mi vida.\n\nTe amo muchísimo. Feliz aniversario, mi solecito hermoso."}];
+    let msgIdx = 0;
+
+    const textosCortos = [
+      "Mi solecito", "Mi prinsheshita", "Mi palomita", "Mi todo",
+      "Mi universo", "Mi ajolotita", "Mi cachtoncita", "Mi vida",
+      "Mi cielo", "Mi reina", "Mi sol", "Mi hogar",
+      "Mi estrella", "Mi amor", "Mi razón", "Mi luz",
+      "Mi mundo", "Mi paz", "Te adoro", "Para siempre",
+      "Mi tesoro", "Mi princesa", "Mi corazón", "Mi cielo lindo",
+      "Mi personita", "Mi solecito", "Mi todo", "Mi amor"
+    ];
+
+    const imagenes = [
+      "fotos/1000611956.jpg",
+      "fotos/1000611949.jpg",
+      "fotos/1000611954.jpg",
+      "fotos/1000611951.jpg",
+      "fotos/1000611952.jpg",
+      "fotos/1000611955.jpg",
+      "fotos/1000611946.jpg",
+      "fotos/1000611943.jpg",
+      "fotos/1000611950.jpg",
+      "fotos/1000611942.jpg",
+      "fotos/1000611948.jpg",
+      "fotos/1000611939.jpg",
+      "fotos/1000611937.jpg",
+      "fotos/1000611938.jpg",
+      "fotos/1000611936.jpg",
+      "fotos/1000611932.jpg",
+      "fotos/1000611945.jpg",
+      "fotos/1000611944.jpg",
+      "fotos/1000611940.jpg",
+      "fotos/1000611935.jpg",
+      "fotos/1000602305.jpg",
+      "fotos/1000602328.jpg",
+      "fotos/1000602347.jpg",
+      "fotos/1000602368.jpg",
+      "fotos/1000602369.jpg",
+      "fotos/1000602370.jpg",
+      "fotos/1000611933.jpg",
+      "fotos/1000611934.jpg",
+      "fotos/1000611947.jpg"
+    ];
+
+    let scene, camera, renderer, controls, raycaster, mouse;
+    let dancePlane, layX = 1, layR = 1, layY = 1;
+    if (document.fonts && document.fonts.load) { document.fonts.load('italic 700 34px "Playfair Display"'); document.fonts.load('400 16px Lora'); }
+    let particles, heartParticles, teAmoParticles, centralGlow;
+    let outerRing, ambientSparkles, pulseRings = [];
+    let warpTunnel = null;
+    let orbitingObjects = [];
+    let shootingStars = [];
+    let started = false;
+    let introPhase = 'warp'; // 'warp' | 'reveal' | 'done'
+    let introStart = 0;
+
+    const bgMusic = document.getElementById('bgMusic');
+    const muteBtn = document.getElementById('muteBtn');
+    let userMuted = false, entering = false, wakeLock = null;
+    function fadeMusicIn(){
+      bgMusic.volume = 0;
+      let v = 0;
+      const iv = setInterval(() => { v = Math.min(0.55, v + 0.025); bgMusic.volume = v; if (v >= 0.55) clearInterval(iv); }, 120);
+    }
+    async function keepAwake(){
+      try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+    }
+    muteBtn.addEventListener('click', () => {
+      userMuted = !userMuted;
+      muteBtn.classList.toggle('muted', userMuted);
+      if (userMuted) bgMusic.pause(); else bgMusic.play().catch(() => {});
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (!started) return;
+      if (document.hidden) bgMusic.pause();
+      else { if (!userMuted) bgMusic.play().catch(() => {}); keepAwake(); }
+    });
+
+    document.getElementById('enterBtn').addEventListener('click', async () => {
+      if (entering) return;
+      entering = true;
+      const btn = document.getElementById('enterBtn');
+      const err = document.getElementById('loadErr');
+      btn.classList.add('loading');
+      // La música se inicia en el mismo toque (necesario en iPhone/Android)
+      bgMusic.play().then(fadeMusicIn).catch(() => {});
+      const ok = await ensureThree();
+      if (!ok) {
+        err.style.display = 'block';
+        err.textContent = 'No pude cargar la galaxia. Revisa tu conexión a internet y vuelve a tocar el botón.';
+        btn.classList.remove('loading');
+        entering = false;
+        return;
+      }
+      document.getElementById('welcome').classList.add('hide');
+      keepAwake();
+      try { initThree(); }
+      catch (e) {
+        document.getElementById('welcome').classList.remove('hide');
+        err.style.display = 'block';
+        err.textContent = 'Tu navegador no pudo abrir la galaxia en 3D. Prueba con Chrome o Safari actualizado.';
+        btn.classList.remove('loading');
+        entering = false;
+      }
+    });
+
+    function initThree() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x03010a, 0.004);
+
+      camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 1200);
+      // Empieza dentro del túnel
+      camera.position.set(0, 0, 80);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.innerWidth < 700 ? 1.75 : 2));
+      renderer.setClearColor(0x03010a, 1);
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.rotateSpeed = 0.5;
+      controls.minDistance = 14;
+      controls.maxDistance = 95;
+      controls.autoRotate = false;
+      controls.autoRotateSpeed = 0.28;
+      controls.enablePan = false;
+      controls.enabled = false; // bloqueado durante el viaje
+
+      raycaster = new THREE.Raycaster();
+      raycaster.params.Points.threshold = 2.2; // más fácil tocar con el dedo
+      mouse = new THREE.Vector2();
+
+      createWarpTunnel();
+      createGalaxyParticles();
+      createHeartParticles();
+      createCentralGlow();
+      createOrbitingObjects();
+      createTeAmoParticles();
+      (function createDancePortal() {
+        const tex = new THREE.CanvasTexture(window.__danceCv);
+        tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false;
+        window.__danceTex = tex;
+        dancePlane = new THREE.Mesh(new THREE.PlaneGeometry(26, 39), new THREE.MeshBasicMaterial({
+          map: tex, transparent: true, opacity: 0, depthWrite: false, depthTest: false, fog: false, side: THREE.DoubleSide
+        }));
+        dancePlane.material.color.setScalar(1.1);
+        dancePlane.renderOrder = 10;
+        const bc = document.createElement('canvas'); bc.width = bc.height = 256;
+        const bx = bc.getContext('2d'), bg = bx.createRadialGradient(128, 128, 20, 128, 128, 128);
+        bg.addColorStop(0, 'rgba(2,12,9,0.78)'); bg.addColorStop(0.65, 'rgba(2,12,9,0.45)'); bg.addColorStop(1, 'rgba(2,12,9,0)');
+        bx.fillStyle = bg; bx.fillRect(0, 0, 256, 256);
+        const back = new THREE.Mesh(new THREE.PlaneGeometry(34, 40), new THREE.MeshBasicMaterial({
+          map: new THREE.CanvasTexture(bc), transparent: true, depthWrite: false, depthTest: false, fog: false, side: THREE.DoubleSide
+        }));
+        back.position.z = -0.05; back.renderOrder = 9;
+        dancePlane.add(back);
+        dancePlane.position.set(0, -17, 0);
+        dancePlane.visible = false;
+        scene.add(dancePlane);
+      })();
+      createOuterRing();
+      createAmbientSparkles();
+      createPulseRings();
+
+      // Ocultar el universo hasta que termine el viaje
+      if (particles) particles.visible = false;
+      if (heartParticles) heartParticles.visible = false;
+      if (teAmoParticles) teAmoParticles.visible = false;
+      if (centralGlow) centralGlow.visible = false;
+      if (outerRing) outerRing.visible = false;
+      if (ambientSparkles) ambientSparkles.visible = false;
+      pulseRings.forEach(r => r.visible = false);
+      orbitingObjects.forEach(o => o.visible = false);
+
+      scene.add(new THREE.AmbientLight(0x1a3c2e, 0.9));
+
+      renderer.domElement.addEventListener('pointerdown', onPointerDown);
+      renderer.domElement.addEventListener('pointerup', onPointerUp);
+      window.addEventListener('resize', onResize);
+
+      introStart = Date.now();
+      introPhase = 'warp';
+      animate();
+      started = true;
+    }
+
+    // ========== TÚNEL DE VIAJE (intro) ==========
+    function createWarpTunnel() {
+      const count = 12000;
+      const geo = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+      const speeds = new Float32Array(count);
+
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 2 + Math.random() * 28;
+        const z = (Math.random() - 0.5) * 200;
+        positions[i*3]     = Math.cos(angle) * radius;
+        positions[i*3 + 1] = Math.sin(angle) * radius;
+        positions[i*3 + 2] = z;
+
+        const usePink = Math.random() > 0.7;
+        const c = usePink
+          ? new THREE.Color().setHSL(0.40 + Math.random()*0.08, 0.9, 0.55 + Math.random()*0.35)
+          : new THREE.Color().setHSL(0.0, 0, 0.75 + Math.random()*0.25);
+        colors[i*3] = c.r; colors[i*3+1] = c.g; colors[i*3+2] = c.b;
+        speeds[i] = 0.6 + Math.random() * 1.8;
+      }
+
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geo.setAttribute('speed', new THREE.BufferAttribute(speeds, 1));
+
+      warpTunnel = new THREE.Points(geo, new THREE.PointsMaterial({
+        size: 0.55,
+        vertexColors: true,
+        transparent: true,
+        opacity: 1,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        sizeAttenuation: true
+      }));
+      scene.add(warpTunnel);
+    }
+
+    function createGalaxyParticles() {
+      const count = 26000;
+      const geo = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+      const palette = [
+        new THREE.Color(0x022c22),
+        new THREE.Color(0x064e3b),
+        new THREE.Color(0x047857),
+        new THREE.Color(0x059669),
+        new THREE.Color(0x10b981),
+        new THREE.Color(0x34d399),
+        new THREE.Color(0x6ee7b7),
+        new THREE.Color(0xa7f3d0),
+        new THREE.Color(0xd1fae5),
+        new THREE.Color(0xecfdf5),
+        new THREE.Color(0xffffff),
+        new THREE.Color(0xffffff),
+        new THREE.Color(0xbbf7d0)
+      ];
+      for (let i = 0; i < count; i++) {
+        const radius = Math.pow(Math.random(), 0.68) * 95 + 1.5;
+        const angle = Math.random() * Math.PI * 2;
+        const spiral = radius * 0.14;
+        const y = (Math.random() - 0.5) * (26 + radius * 0.22);
+        positions[i*3]     = Math.cos(angle + spiral) * radius;
+        positions[i*3 + 1] = y;
+        positions[i*3 + 2] = Math.sin(angle + spiral) * radius;
+        const c = palette[Math.floor(Math.random() * palette.length)];
+        colors[i*3] = c.r; colors[i*3+1] = c.g; colors[i*3+2] = c.b;
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      particles = new THREE.Points(geo, new THREE.PointsMaterial({
+        size: 0.52,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.92,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        sizeAttenuation: true
+      }));
+      scene.add(particles);
+    }
+
+    function createHeartParticles() {
+      // Corazón central aún más grande y con buena forma
+      const count = 9000;
+      const geo = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+      const scale = 2.45;
+      for (let i = 0; i < count; i++) {
+        const t = Math.random() * Math.PI * 2;
+        const dens = 0.50 + Math.pow(Math.random(), 0.72) * 0.50;
+        let x = 16 * Math.pow(Math.sin(t), 3);
+        let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+        x = (x * dens + (Math.random()-0.5)*1.25) * scale;
+        y = (y * dens + (Math.random()-0.5)*1.25) * scale + 2.4;
+        const z = (Math.random()-0.5) * 2.6 * dens;
+        positions[i*3]     = x;
+        positions[i*3 + 1] = y;
+        positions[i*3 + 2] = z;
+        const c = new THREE.Color().setHSL(0.40 + Math.random()*0.08, 0.90, 0.56 + Math.random()*0.28);
+        colors[i*3] = c.r; colors[i*3+1] = c.g; colors[i*3+2] = c.b;
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      heartParticles = new THREE.Points(geo, new THREE.PointsMaterial({
+        size: 0.52,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.98,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        sizeAttenuation: true
+      }));
+      scene.add(heartParticles);
+    }
+
+    // Halo suave detrás del corazón central
+    function createCentralGlow() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256; canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+      g.addColorStop(0, 'rgba(255,150,200,0.55)');
+      g.addColorStop(0.35, 'rgba(244,114,182,0.25)');
+      g.addColorStop(0.7, 'rgba(52,211,153,0.08)');
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 256, 256);
+      const tex = new THREE.CanvasTexture(canvas);
+      const mat = new THREE.SpriteMaterial({
+        map: tex,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        opacity: 0.85
+      });
+      centralGlow = new THREE.Sprite(mat);
+      centralGlow.scale.set(52, 52, 1);
+      centralGlow.position.set(0, 2.8, 0);
+      scene.add(centralGlow);
+    }
+
+    // Textura de partícula suave (círculo con glow) para corazones esponjosos
+    function createSoftParticleTexture() {
+      const size = 64;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const g = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+      g.addColorStop(0, 'rgba(255,255,255,1)');
+      g.addColorStop(0.25, 'rgba(255,220,240,0.9)');
+      g.addColorStop(0.55, 'rgba(255,150,200,0.45)');
+      g.addColorStop(1, 'rgba(255,100,160,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size, size);
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    function createTextTexture(text) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 480; canvas.height = 100;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 480, 100);
+      // Fondo más sólido para máxima legibilidad
+      ctx.fillStyle = 'rgba(4,24,18,0.72)';
+      const rx = 16, ry = 18, rw = 448, rh = 64, rr = 22;
+      ctx.beginPath();
+      ctx.moveTo(rx + rr, ry);
+      ctx.arcTo(rx + rw, ry, rx + rw, ry + rh, rr);
+      ctx.arcTo(rx + rw, ry + rh, rx, ry + rh, rr);
+      ctx.arcTo(rx, ry + rh, rx, ry, rr);
+      ctx.arcTo(rx, ry, rx + rw, ry, rr);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(167,243,208,0.55)';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.font = 'italic 700 34px "Playfair Display", Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = '#34d399';
+      ctx.shadowBlur = 26;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(text, 240, 50);
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = '#ecfdf5';
+      ctx.fillText(text, 240, 50);
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    // Crea un corazón esponjoso con forma más clara
+    function createFluffyHeart(colorHSL, scale = 1.0) {
+      const count = 320;
+      const geo = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+
+      for (let i = 0; i < count; i++) {
+        const t = Math.random() * Math.PI * 2;
+        // dens más alto = forma más definida, menos nube
+        const dens = 0.65 + Math.pow(Math.random(), 0.7) * 0.35;
+        let x = 16 * Math.pow(Math.sin(t), 3);
+        let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+        x *= 0.092 * scale * dens;
+        y *= 0.092 * scale * dens;
+        // Dispersión controlada (mantiene forma de corazón)
+        x += (Math.random() - 0.5) * 0.28 * scale;
+        y += (Math.random() - 0.5) * 0.28 * scale;
+        const z = (Math.random() - 0.5) * 0.45 * scale;
+
+        positions[i*3]     = x;
+        positions[i*3 + 1] = y;
+        positions[i*3 + 2] = z;
+
+        const c = new THREE.Color().setHSL(
+          colorHSL.h + (Math.random() - 0.5) * 0.035,
+          colorHSL.s * (0.88 + Math.random() * 0.12),
+          colorHSL.l * (0.78 + Math.random() * 0.28)
+        );
+        colors[i*3] = c.r; colors[i*3+1] = c.g; colors[i*3+2] = c.b;
+      }
+
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      const mat = new THREE.PointsMaterial({
+        map: createSoftParticleTexture(),
+        size: 0.52 * scale,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.94,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        sizeAttenuation: true
+      });
+
+      return new THREE.Points(geo, mat);
+    }
+
+    function createOrbitingObjects() {
+      const loader = new THREE.TextureLoader();
+      // Tonos rosa / lila suaves para los corazones esponjosos
+      const heartColors = [
+        { h: 0.42, s: 0.80, l: 0.62 },
+        { h: 0.45, s: 0.70, l: 0.66 },
+        { h: 0.40, s: 0.15, l: 0.94 },
+        { h: 0.38, s: 0.75, l: 0.60 },
+        { h: 0.47, s: 0.12, l: 0.96 },
+        { h: 0.43, s: 0.85, l: 0.58 },
+        { h: 0.41, s: 0.20, l: 0.92 },
+        { h: 0.46, s: 0.78, l: 0.64 }
+      ];
+      const total = 66; // ~30 fotos + ~15 corazones intercalados
+      // Más alejados y dispersos alrededor del corazón grande
+      const radiusBase = 32;
+      const radiusSpread = 14;
+      let photoCounter = 0;
+
+      for (let i = 0; i < total; i++) {
+        // Ángulos bien repartidos para que fotos y corazones vayan mezclados
+        const angle = (i / total) * Math.PI * 2 + (Math.random() - 0.5) * 0.35;
+        const radius = radiusBase + (Math.random() - 0.5) * radiusSpread;
+        const yBase = (Math.random() - 0.5) * 18;
+        const speed = 0.065 + Math.random() * 0.15;
+        const ySpeed = 0.15 + Math.random() * 0.35;
+        // Mezclar fotos y corazones (no todo un lado de cada cosa)
+        // Patrón: foto, foto, corazón, foto, foto, corazón...
+        const isPhoto = ('PHPHPHPHPHH'[i % 11] === 'P');
+
+        if (isPhoto) {
+          const imgIndex = photoCounter % imagenes.length;
+          photoCounter++;
+          loader.load(imagenes[imgIndex], (texture) => {
+            const isMobile = window.innerWidth < 700;
+            const photoSize = isMobile ? 3.9 : 5.4;
+            texture.minFilter = THREE.LinearFilter; texture.generateMipmaps = false;
+            const iw = texture.image.width || 1, ih = texture.image.height || 1;
+            const pw = iw >= ih ? photoSize : photoSize * iw / ih;
+            const ph = iw >= ih ? photoSize * ih / iw : photoSize;
+            const geo = new THREE.PlaneGeometry(pw, ph);
+            const mat = new THREE.MeshBasicMaterial({
+              map: texture,
+              transparent: true,
+              side: THREE.DoubleSide,
+              opacity: 0.96,
+              depthWrite: false
+            });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(Math.cos(angle)*radius, yBase, Math.sin(angle)*radius);
+            mesh.userData = {
+              type: 'photo', img: imagenes[imgIndex], angle, radius, speed, ySpeed, yBase, index: i,
+              phase: Math.random() * Math.PI * 2,
+              floatAmp: 2.2 + Math.random() * 1.4
+            };
+
+            // Marco suave
+            const borderGeo = new THREE.PlaneGeometry(pw + 0.35, ph + 0.35);
+            const borderMat = new THREE.MeshBasicMaterial({
+              color: 0x34d399,
+              transparent: true,
+              opacity: 0.42,
+              side: THREE.DoubleSide,
+              depthWrite: false
+            });
+            const border = new THREE.Mesh(borderGeo, borderMat);
+            border.position.z = -0.04;
+            mesh.add(border);
+
+            const glowGeo = new THREE.PlaneGeometry(pw + 0.9, ph + 0.9);
+            const glowMat = new THREE.MeshBasicMaterial({
+              color: 0x34d399,
+              transparent: true,
+              opacity: 0.11,
+              side: THREE.DoubleSide,
+              depthWrite: false,
+              blending: THREE.AdditiveBlending
+            });
+            const glow = new THREE.Mesh(glowGeo, glowMat);
+            glow.position.z = -0.06;
+            mesh.add(glow);
+
+            mesh.visible = (introPhase !== 'warp'); // no aparecer antes del viaje
+            scene.add(mesh);
+            orbitingObjects.push(mesh);
+          });
+        } else {
+          // Corazón esponjoso de partículas
+          const group = new THREE.Group();
+          const color = heartColors[i % heartColors.length];
+          const isMobile = window.innerWidth < 700;
+          const heartScale = isMobile
+            ? (1.6 + Math.random() * 0.9)
+            : (2.1 + Math.random() * 1.3);
+
+          const fluffy = createFluffyHeart(color, heartScale);
+          group.add(fluffy);
+
+          // Texto flotante al lado
+          const txt = textosCortos[i % textosCortos.length];
+          const textMat = new THREE.SpriteMaterial({
+            map: createTextTexture(txt),
+            transparent: true,
+            depthWrite: false
+          });
+          const textSprite = new THREE.Sprite(textMat);
+          const textScale = isMobile ? 6.8 : 9.0;
+          textSprite.scale.set(textScale, textScale * 0.22, 1);
+          textSprite.position.set(heartScale * 1.05 + (isMobile ? 1.6 : 2.2), 0.25, 0);
+          group.add(textSprite);
+
+          group.position.set(Math.cos(angle)*radius, yBase, Math.sin(angle)*radius);
+          group.userData = {
+            type: 'heart',
+            angle, radius, speed, ySpeed, yBase,
+            index: i,
+            text: txt,
+            phase: Math.random() * Math.PI * 2,
+            floatAmp: 2.4 + Math.random() * 1.6,
+            spinSpeed: 0.15 + Math.random() * 0.25,
+            pulseSpeed: 1.8 + Math.random() * 1.2
+          };
+          scene.add(group);
+          orbitingObjects.push(group);
+        }
+      }
+    }
+
+    let _pd = null, imgQueue = [];
+    function nextImage(){
+      if (!imgQueue.length) {
+        imgQueue = imagenes.map((_, i) => i);
+        for (let i = imgQueue.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [imgQueue[i], imgQueue[j]] = [imgQueue[j], imgQueue[i]]; }
+      }
+      return imagenes[imgQueue.pop()];
+    }
+    function onPointerDown(event) { _pd = { x: event.clientX, y: event.clientY, t: Date.now() }; }
+    function onPointerUp(event) {
+      if (!started || !_pd || introPhase !== 'done') { _pd = null; return; }
+      const moved = Math.hypot(event.clientX - _pd.x, event.clientY - _pd.y), dt = Date.now() - _pd.t;
+      _pd = null;
+      if (moved > 10 || dt > 600) return; // fue un arrastre para girar, no un toque
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const targets = [];
+      orbitingObjects.forEach(obj => {
+        if (!obj.visible) return;
+        if (obj.isGroup) obj.children.forEach(c => targets.push(c));
+        else targets.push(obj);
+      });
+      const intersects = raycaster.intersectObjects(targets, false);
+      if (intersects.length > 0) {
+        let target = intersects[0].object;
+        while (target.parent && !target.userData.type) target = target.parent;
+        openModal(target.userData && target.userData.img);
+      }
+    }
+
+    function openModal(img) {
+      const mi = document.getElementById('modalImg');
+      mi.onerror = () => { mi.style.display = 'none'; };
+      mi.style.display = '';
+      mi.src = img || nextImage();
+      const idx = msgIdx++ % mensajes.length;
+      const mm = mensajes[idx];
+      const box = document.getElementById('modalMsg');
+      box.innerHTML = '';
+      const cc = document.createElement('div'); cc.className = 'modal-count'; cc.textContent = 'Mensaje ' + (idx + 1) + ' de ' + mensajes.length;
+      const tt = document.createElement('div'); tt.className = 'modal-title'; tt.textContent = mm.t;
+      const bb = document.createElement('div'); bb.textContent = mm.m;
+      box.appendChild(cc); box.appendChild(tt); box.appendChild(bb);
+      box.scrollTop = 0;
+      document.getElementById('modal').classList.add('show');
+    }
+    function closeModal() {
+      document.getElementById('modal').classList.remove('show');
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    document.getElementById('modal').addEventListener('click', e => {
+      if (e.target.id === 'modal') closeModal();
+    });
+
+    // ========== TE AMO escrito con partículas (más grande) ==========
+    function createTeAmoParticles() {
+      const letterPoints = [];
+      const s = 1.45; // escala general más grande
+
+      function addLine(x1, y1, x2, y2, dens = 26) {
+        for (let i = 0; i <= dens; i++) {
+          const t = i / dens;
+          letterPoints.push({
+            x: (x1 + (x2 - x1) * t) * s,
+            y: (y1 + (y2 - y1) * t) * s
+          });
+        }
+      }
+
+      // T
+      addLine(-11.8, 3.5, -8.5, 3.5);
+      addLine(-10.15, 3.5, -10.15, -1.7);
+
+      // E
+      addLine(-7.5, 3.5, -7.5, -1.7);
+      addLine(-7.5, 3.5, -4.85, 3.5);
+      addLine(-7.5, 0.95, -5.25, 0.95);
+      addLine(-7.5, -1.7, -4.85, -1.7);
+
+      // A
+      addLine(-3.0, -1.7, -1.4, 3.5);
+      addLine(-1.4, 3.5, 0.3, -1.7);
+      addLine(-2.3, 0.5, -0.3, 0.5);
+
+      // M
+      addLine(1.35, -1.7, 1.35, 3.5);
+      addLine(1.35, 3.5, 2.8, 0.5);
+      addLine(2.8, 0.5, 4.25, 3.5);
+      addLine(4.25, 3.5, 4.25, -1.7);
+
+      // O
+      for (let i = 0; i < 36; i++) {
+        const a = (i / 36) * Math.PI * 2;
+        letterPoints.push({
+          x: (7.5 + Math.cos(a) * 1.85) * s,
+          y: (0.9 + Math.sin(a) * 2.45) * s
+        });
+      }
+
+      const count = letterPoints.length * 5;
+      const geo = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+
+      let idx = 0;
+      letterPoints.forEach(p => {
+        for (let k = 0; k < 5; k++) {
+          positions[idx*3]     = p.x + (Math.random()-0.5)*0.38;
+          positions[idx*3 + 1] = p.y + (Math.random()-0.5)*0.38 + 2.4;
+          positions[idx*3 + 2] = (Math.random()-0.5)*1.3;
+
+          const c = new THREE.Color().setHSL(0.40 + Math.random()*0.08, 0.92, 0.70 + Math.random()*0.18);
+          colors[idx*3] = c.r; colors[idx*3+1] = c.g; colors[idx*3+2] = c.b;
+          idx++;
+        }
+      });
+
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      teAmoParticles = new THREE.Points(geo, new THREE.PointsMaterial({
+        size: 0.88,
+        vertexColors: true,
+        transparent: true,
+        opacity: 1.0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      }));
+      scene.add(teAmoParticles);
+    }
+
+    // ========== ANILLO EXTERIOR + DESTELLOS AMBIENTALES (llenan el espacio horizontal) ==========
+    function createOuterRing() {
+      const count = 7000;
+      const geo = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 46 + Math.random() * 48;
+        const y = (Math.random() - 0.5) * 42;
+        positions[i*3]     = Math.cos(angle) * radius;
+        positions[i*3 + 1] = y;
+        positions[i*3 + 2] = Math.sin(angle) * radius;
+
+        const usePink = Math.random() > 0.42;
+        const c = usePink
+          ? new THREE.Color().setHSL(0.40 + Math.random()*0.08, 0.75, 0.55 + Math.random()*0.28)
+          : new THREE.Color().setHSL(0.45 + Math.random()*0.08, 0.6, 0.48 + Math.random()*0.32);
+        colors[i*3] = c.r; colors[i*3+1] = c.g; colors[i*3+2] = c.b;
+      }
+
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      outerRing = new THREE.Points(geo, new THREE.PointsMaterial({
+        size: 0.72,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        sizeAttenuation: true
+      }));
+      scene.add(outerRing);
+    }
+
+    function createAmbientSparkles() {
+      const count = 3200;
+      const geo = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+
+      for (let i = 0; i < count; i++) {
+        const radius = 18 + Math.random() * 80;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        positions[i*3]     = radius * Math.sin(phi) * Math.cos(theta);
+        positions[i*3 + 1] = radius * Math.sin(phi) * Math.sin(theta) * 0.75;
+        positions[i*3 + 2] = radius * Math.cos(phi);
+
+        const c = new THREE.Color().setHSL(
+          Math.random() > 0.5 ? 0.40 : 0.48,
+          0.65 + Math.random() * 0.3,
+          0.55 + Math.random() * 0.35
+        );
+        colors[i*3] = c.r; colors[i*3+1] = c.g; colors[i*3+2] = c.b;
+      }
+
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      ambientSparkles = new THREE.Points(geo, new THREE.PointsMaterial({
+        size: 0.48,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.75,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        sizeAttenuation: true
+      }));
+      scene.add(ambientSparkles);
+    }
+
+    // Anillos de pulso que se expanden con el ritmo de la música
+    function createPulseRings() {
+      pulseRings = [];
+      for (let r = 0; r < 4; r++) {
+        const count = 360;
+        const geo = new THREE.BufferGeometry();
+        const positions = new Float32Array(count * 3);
+        const baseRadius = 34 + r * 12;
+
+        for (let i = 0; i < count; i++) {
+          const a = (i / count) * Math.PI * 2;
+          const jitter = 0.8 + Math.random() * 1.5;
+          positions[i*3]     = Math.cos(a) * baseRadius * jitter;
+          positions[i*3 + 1] = (Math.random() - 0.5) * 4;
+          positions[i*3 + 2] = Math.sin(a) * baseRadius * jitter;
+        }
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const color = r % 2 === 0 ? 0xffffff : 0xa7f3d0;
+        const mat = new THREE.PointsMaterial({
+          size: 1.1,
+          color: color,
+          transparent: true,
+          opacity: 0.5,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          sizeAttenuation: true
+        });
+        const ring = new THREE.Points(geo, mat);
+        ring.userData = {
+          baseRadius,
+          phase: r * 0.7,
+          speed: 1.0 + r * 0.18
+        };
+        scene.add(ring);
+        pulseRings.push(ring);
+      }
+    }
+
+    // ========== ESTRELLAS FUGACES ==========
+    function spawnShootingStar() {
+      const geo = new THREE.BufferGeometry();
+      const positions = new Float32Array(20 * 3);
+      const startX = (Math.random() - 0.5) * 75;
+      const startY = 16 + Math.random() * 18;
+      const startZ = (Math.random() - 0.5) * 45;
+      const dirX = -0.65 - Math.random() * 0.45;
+      const dirY = -0.45 - Math.random() * 0.4;
+
+      for (let i = 0; i < 20; i++) {
+        positions[i*3]     = startX + dirX * i * 0.85;
+        positions[i*3 + 1] = startY + dirY * i * 0.85;
+        positions[i*3 + 2] = startZ;
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+      // Colores suaves: a veces menta, a veces rosa
+      const starColor = Math.random() > 0.4 ? 0xa7f3d0 : 0xffffff;
+      const mat = new THREE.PointsMaterial({
+        size: 0.58,
+        color: starColor,
+        transparent: true,
+        opacity: 0.95,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+      const star = new THREE.Points(geo, mat);
+      star.userData = { life: 1.0, speed: 0.85 + Math.random()*0.45, dirX, dirY };
+      scene.add(star);
+      shootingStars.push(star);
+    }
+
+    // ========== CONTADOR DE TIEMPO ==========
+    function startCounter() {
+      const startDate = new Date(2025, 10, 25, 0, 0, 0);
+
+      function update() {
+        const now = new Date();
+        let diff = now - startDate;
+
+        if (diff < 0) {
+          document.getElementById('counterText').textContent = 'Pronto empezamos...';
+          return;
+        }
+
+        let years = now.getFullYear() - startDate.getFullYear();
+        let months = now.getMonth() - startDate.getMonth();
+        let days = now.getDate() - startDate.getDate();
+
+        if (days < 0) {
+          months--;
+          const prev = new Date(now.getFullYear(), now.getMonth(), 0);
+          days += prev.getDate();
+        }
+        if (months < 0) {
+          years--;
+          months += 12;
+        }
+
+        const totalMs = now - startDate;
+        const totalSecs = Math.floor(totalMs / 1000);
+        const elapsedHours = Math.floor((totalSecs % 86400) / 3600);
+        const elapsedMins  = Math.floor((totalSecs % 3600) / 60);
+        const elapsedSecs  = totalSecs % 60;
+
+        let text = '';
+        if (years > 0) text += years + (years === 1 ? ' año ' : ' años ');
+        if (months > 0 || years > 0) text += months + (months === 1 ? ' mes ' : ' meses ');
+        text += days + (days === 1 ? ' día ' : ' días ');
+        text += String(elapsedHours).padStart(2,'0') + ':' +
+                String(elapsedMins).padStart(2,'0') + ':' +
+                String(elapsedSecs).padStart(2,'0');
+
+        document.getElementById('counterText').textContent = text + ' juntos';
+      }
+      update();
+      setInterval(update, 1000);
+    }
+
+    // ========== DÍA DEL ANIVERSARIO ==========
+    function celebrateAnniversary() {
+      const now = new Date();
+      const isDay = (now.getMonth() === 10 && now.getDate() === 25) || /aniversario/i.test(location.search);
+      if (!isDay) return;
+      const years = Math.max(1, now.getFullYear() - 2025);
+      document.getElementById('annivSub').textContent = years + (years === 1 ? ' año' : ' años') + ' juntos  ·  25 · 11 · 2025';
+      const el = document.getElementById('anniv');
+      el.classList.add('show');
+      for (let i = 0; i < 28; i++) setTimeout(spawnShootingStar, i * 260);
+      setTimeout(() => el.classList.remove('show'), 9000);
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (dancePlane) {
+        dancePlane.rotation.y = Math.atan2(camera.position.x, camera.position.z);
+        if (dancePlane.visible) dancePlane.material.opacity = Math.min(1, dancePlane.material.opacity + 0.008);
+        if (dancePlane.children[0]) dancePlane.children[0].material.opacity = dancePlane.material.opacity;
+      }
+      if (!started) return;
+      const t = Date.now() * 0.001;
+      const elapsed = (Date.now() - introStart) / 1000;
+
+      // ========== FASE DE VIAJE (túnel) ==========
+      if (introPhase === 'warp' && warpTunnel) {
+        const positions = warpTunnel.geometry.attributes.position.array;
+        const speeds = warpTunnel.geometry.attributes.speed.array;
+        const flySpeed = 2.8 + elapsed * 1.2;
+
+        for (let i = 0; i < speeds.length; i++) {
+          positions[i*3 + 2] += flySpeed * speeds[i];
+          // Reciclar partículas al fondo del túnel
+          if (positions[i*3 + 2] > 100) {
+            positions[i*3 + 2] -= 200;
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 2 + Math.random() * 28;
+            positions[i*3]     = Math.cos(angle) * radius;
+            positions[i*3 + 1] = Math.sin(angle) * radius;
+          }
+        }
+        warpTunnel.geometry.attributes.position.needsUpdate = true;
+        warpTunnel.rotation.z = elapsed * 0.35;
+
+        // Cámara avanza por el túnel
+        camera.position.z = 80 - elapsed * 18;
+        camera.position.y = Math.sin(elapsed * 1.5) * 0.8;
+
+        // A los ~3.2s pasamos a revelar el universo
+        if (elapsed > 3.2) {
+          introPhase = 'reveal';
+          // Mostrar el universo
+          if (particles) particles.visible = true;
+          if (heartParticles) heartParticles.visible = true;
+          if (teAmoParticles) teAmoParticles.visible = true;
+          if (centralGlow) centralGlow.visible = true;
+          if (outerRing) outerRing.visible = true;
+          if (ambientSparkles) ambientSparkles.visible = true;
+          pulseRings.forEach(r => r.visible = true);
+          orbitingObjects.forEach(o => o.visible = true);
+          if (dancePlane) dancePlane.visible = true;
+        }
+
+        controls.update();
+        renderer.render(scene, camera);
+        return;
+      }
+
+      // ========== TRANSICIÓN / REVELACIÓN ==========
+      if (introPhase === 'reveal') {
+        const revealT = elapsed - 3.2;
+        // Fundido del túnel
+        if (warpTunnel) {
+          warpTunnel.material.opacity = Math.max(0, 1 - revealT * 0.9);
+          const positions = warpTunnel.geometry.attributes.position.array;
+          const speeds = warpTunnel.geometry.attributes.speed.array;
+          for (let i = 0; i < speeds.length; i++) {
+            positions[i*3 + 2] += 4 * speeds[i];
+          }
+          warpTunnel.geometry.attributes.position.needsUpdate = true;
+          if (warpTunnel.material.opacity <= 0.02) {
+            scene.remove(warpTunnel);
+            warpTunnel.geometry.dispose();
+            warpTunnel.material.dispose();
+            warpTunnel = null;
+          }
+        }
+        // Cámara se coloca en posición final
+        const targetZ = 54;
+        const targetY = 3.5;
+        camera.position.z += (targetZ - camera.position.z) * 0.06;
+        camera.position.y += (targetY - camera.position.y) * 0.06;
+        camera.position.x += (0 - camera.position.x) * 0.06;
+
+        if (revealT > 2.2) {
+          introPhase = 'done';
+          controls.enabled = true;
+          controls.autoRotate = true;
+          camera.position.set(0, 3.5, 54);
+          // UI
+          startCounter();
+          document.getElementById('counter').classList.add('show');
+          muteBtn.classList.add('show');
+          if (document.documentElement.requestFullscreen) {
+            document.getElementById('fsBtn').classList.add('show');
+            document.getElementById('fsBtn').addEventListener('click', toggleFullscreen);
+          }
+          celebrateAnniversary();
+          setTimeout(() => {
+            document.getElementById('hint').classList.add('show');
+            setTimeout(() => document.getElementById('hint').classList.remove('show'), 9000);
+          }, 600);
+        }
+      }
+
+      if (particles) {
+        particles.rotation.y = t * 0.055;
+        particles.rotation.x = Math.sin(t * 0.06) * 0.03;
+      }
+
+      if (heartParticles) {
+        heartParticles.rotation.y = t * 0.08;
+      }
+
+      if (centralGlow) {
+        const gPulse = 0.70 + Math.sin(t * 2.4) * 0.22;
+        centralGlow.material.opacity = gPulse;
+        const gScale = 50 + Math.sin(t * 1.8) * 5;
+        centralGlow.scale.set(gScale, gScale, 1);
+      }
+
+      // TE AMO más vivo
+      if (teAmoParticles) {
+        teAmoParticles.position.y = Math.sin(t * 0.7) * 0.45;
+        teAmoParticles.rotation.y = Math.sin(t * 0.25) * 0.07;
+        const pulse = 0.8 + Math.sin(t * 2.6) * 0.2;
+        teAmoParticles.material.opacity = pulse;
+        const scale = 1 + Math.sin(t * 2.1) * 0.1;
+        teAmoParticles.scale.set(scale, scale, scale);
+      }
+
+      // Ritmo musical más intenso (~90-100 BPM)
+      const musicBeat = Math.sin(t * 3.15);
+      const musicBeat2 = Math.sin(t * 1.55);
+      const musicIntensity = 0.55 + musicBeat * 0.45;
+
+      // Anillo exterior que respira fuerte con la música
+      if (outerRing && outerRing.visible) {
+        outerRing.rotation.y = t * 0.03;
+        outerRing.rotation.x = Math.sin(t * 0.045) * 0.1;
+        outerRing.material.opacity = 0.4 + musicIntensity * 0.45;
+        const ringScale = 1 + musicBeat2 * 0.06;
+        outerRing.scale.set(ringScale, 1 + musicBeat * 0.05, ringScale);
+      }
+
+      // Destellos ambientales más vivos
+      if (ambientSparkles && ambientSparkles.visible) {
+        ambientSparkles.rotation.y = t * 0.045;
+        ambientSparkles.rotation.x = Math.sin(t * 0.08) * 0.06;
+        ambientSparkles.material.opacity = 0.5 + musicIntensity * 0.48;
+        ambientSparkles.material.size = 0.4 + musicBeat * 0.18;
+      }
+
+      // La galaxia también late con el ritmo
+      if (particles && particles.visible) {
+        particles.material.opacity = 0.8 + musicBeat * 0.15;
+      }
+
+      // Corazón central late más con la música
+      if (heartParticles && heartParticles.visible) {
+        const beat = 1 + Math.sin(t * 2.5) * 0.08 + musicBeat * 0.04;
+        heartParticles.scale.set(beat, beat, beat);
+      }
+
+      // Anillos de pulso más visibles
+      pulseRings.forEach((ring) => {
+        if (!ring.visible) return;
+        const d = ring.userData;
+        const wave = (Math.sin(t * 2.9 * d.speed + d.phase) + 1) * 0.5;
+        const expand = 1 + wave * 0.7;
+        ring.scale.set(expand, 1, expand);
+        ring.material.opacity = Math.max(0.08, 0.75 * (1 - wave * 0.85) * (0.7 + musicIntensity * 0.4));
+        ring.material.size = 0.9 + wave * 0.4;
+        ring.rotation.y = t * 0.08;
+        ring.rotation.x = Math.sin(t * 0.2 + d.phase) * 0.12;
+      });
+
+      // Estrellas fugaces un poco más frecuentes
+      if (introPhase === 'done' && Math.random() < 0.022) spawnShootingStar();
+
+      for (let i = shootingStars.length - 1; i >= 0; i--) {
+        const star = shootingStars[i];
+        const d = star.userData;
+        d.life -= 0.015 * d.speed;
+        star.material.opacity = Math.max(0, d.life);
+        star.position.x += d.dirX * 0.95;
+        star.position.y += d.dirY * 0.95;
+        if (d.life <= 0) {
+          scene.remove(star);
+          star.geometry.dispose();
+          star.material.dispose();
+          shootingStars.splice(i, 1);
+        }
+      }
+
+      const asp = camera.aspect, wf = Math.min(2.2, Math.max(1, asp));
+      layX += ((1 + (wf - 1) * 0.95) - layX) * 0.04;
+      layR += ((1 + (wf - 1) * 0.3) - layR) * 0.04;
+      layY += ((1 + (wf - 1) * 0.55) - layY) * 0.04;
+      orbitingObjects.forEach((obj, i) => {
+        const d = obj.userData;
+        if (!d) return;
+
+        // Órbita suave + pequeña variación de radio (respiración)
+        d.angle += 0.0019 * d.speed;
+        const breathe = 1 + Math.sin(t * 0.35 + d.phase) * 0.04;
+        const r = d.radius * breathe * layR;
+        obj.position.x = Math.cos(d.angle) * r * layX;
+        obj.position.z = Math.sin(d.angle) * r;
+
+        // Flotación más orgánica (dos ondas)
+        const floatY = Math.sin(t * d.ySpeed + d.phase) * (d.floatAmp || 2.6)
+                     + Math.sin(t * (d.ySpeed * 0.6) + d.phase * 1.7) * 0.7;
+        obj.position.y = d.yBase * layY + floatY;
+
+        // Los corazones esponjosos giran y laten suavemente
+        if (d.type === 'heart') {
+          obj.rotation.y = t * (d.spinSpeed || 0.2);
+          const pulse = 1 + Math.sin(t * (d.pulseSpeed || 2.0) + d.phase) * 0.07;
+          obj.scale.set(pulse, pulse, pulse);
+        } else {
+          obj.lookAt(camera.position);
+        }
+      });
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+  </script>
+</body>
+</html>
